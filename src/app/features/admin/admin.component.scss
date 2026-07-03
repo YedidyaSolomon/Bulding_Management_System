@@ -1,0 +1,120 @@
+.admin-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(99,102,241,.1);
+  border: 1px solid rgba(99,102,241,.2);
+  border-radius: 20px;
+  padding: 3px 10px 3px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6366F1;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+
+  mat-icon {
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+  }
+}
+
+.admin-sections-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.admin-section-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  background: var(--bms-bg-card);
+  border: 1px solid var(--bms-border);
+  border-radius: var(--bms-border-radius-lg);
+  text-decoration: none;
+  box-shadow: var(--bms-shadow-sm);
+  transition: var(--bms-transition);
+
+  &:hover {
+    box-shadow: var(--bms-shadow);
+    transform: translateY(-2px);
+    border-color: var(--bms-primary);
+  }
+
+  .asc-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+      color: #fff;
+    }
+  }
+
+  .asc-body {
+    flex: 1;
+    min-width: 0;
+
+    .asc-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+
+      h3 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--bms-text-primary);
+      }
+
+      .asc-badge {
+        font-size: 10px;
+        font-weight: 600;
+        background: #FEF3C7;
+        color: #92400E;
+        border: 1px solid #FCD34D;
+        border-radius: 10px;
+        padding: 1px 7px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+    }
+
+    p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--bms-text-secondary);
+      line-height: 1.6;
+    }
+  }
+
+  .asc-arrow {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: var(--bms-text-muted);
+    flex-shrink: 0;
+    margin-top: 2px;
+    transition: var(--bms-transition);
+  }
+
+  &:hover .asc-arrow {
+    color: var(--bms-primary);
+    transform: translateX(3px);
+  }
+
+  &--indigo .asc-icon { background: #6366F1; }
+  &--blue   .asc-icon { background: #2563EB; }
+  &--slate  .asc-icon { background: #64748B; }
+}

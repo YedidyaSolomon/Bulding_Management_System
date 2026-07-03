@@ -1,0 +1,99 @@
+<div class="bms-page fade-in">
+
+  <!-- Header -->
+  <div class="bms-page-header">
+    <div>
+      <h1>User Management</h1>
+      <p>View all registered users and manage role assignments.</p>
+    </div>
+    <button mat-raised-button color="primary" routerLink="/admin/register-manager">
+      <mat-icon>person_add</mat-icon>
+      Register Manager
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search users</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [formControl]="searchControl" placeholder="Name or email…">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="role-filter">
+      <mat-label>Role</mat-label>
+      <mat-select [formControl]="roleFilter">
+        <mat-option value="all">All roles</mat-option>
+        <mat-option value="Admin">Admin</mat-option>
+        <mat-option value="Manager">Manager</mat-option>
+        <mat-option value="Viewer">Viewer</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <!-- Table -->
+  <div class="bms-card">
+    <!-- Loading -->
+    <div class="loading-overlay" *ngIf="loading">
+      <mat-spinner diameter="40" />
+    </div>
+
+    <table mat-table [dataSource]="filteredUsers" *ngIf="!loading" class="users-table">
+
+      <!-- Name -->
+      <ng-container matColumnDef="fullName">
+        <th mat-header-cell *matHeaderCellDef>User</th>
+        <td mat-cell *matCellDef="let user">
+          <div class="user-cell">
+            <div class="user-avatar">{{ user.fullName.charAt(0).toUpperCase() }}</div>
+            <div class="user-details">
+              <span class="user-name">{{ user.fullName }}</span>
+            </div>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Email -->
+      <ng-container matColumnDef="email">
+        <th mat-header-cell *matHeaderCellDef>Email</th>
+        <td mat-cell *matCellDef="let user" class="email-cell">{{ user.email }}</td>
+      </ng-container>
+
+      <!-- Role -->
+      <ng-container matColumnDef="role">
+        <th mat-header-cell *matHeaderCellDef>Role</th>
+        <td mat-cell *matCellDef="let user">
+          <span class="role-chip" [ngClass]="'role-chip--' + user.role.toLowerCase()">
+            {{ user.role }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Actions -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let user" class="actions-cell">
+          <button
+            mat-icon-button
+            [matTooltip]="user.role === 'Admin' ? 'Admin role cannot be changed' : 'Assign role'"
+            [disabled]="user.role === 'Admin'"
+            (click)="openAssignRole(user)">
+            <mat-icon>manage_accounts</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+    </table>
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="!loading && filteredUsers.length === 0">
+      <mat-icon>people</mat-icon>
+      <h3>No users found</h3>
+      <p>Try adjusting your search or filter.</p>
+    </div>
+  </div>
+
+</div>

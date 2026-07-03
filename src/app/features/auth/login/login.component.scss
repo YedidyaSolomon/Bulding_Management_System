@@ -1,0 +1,18 @@
+@use '../auth-shared' as auth;
+
+.session-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FEF3C7;
+  border: 1px solid #FCD34D;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #92400E;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+}
+
+@include auth.auth-form-styles;

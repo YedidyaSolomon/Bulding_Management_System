@@ -1,0 +1,275 @@
+<div class="bms-page fade-in">
+
+  <!-- ── Page Header ──────────────────────────────────────────────────────── -->
+  <div class="bms-page-header">
+    <div>
+      <h1>Units</h1>
+      <p>Manage property units, availability, and rental details.</p>
+    </div>
+    <button
+      *ngIf="canCreate"
+      mat-raised-button
+      color="primary"
+      (click)="openCreate()">
+      <mat-icon>add</mat-icon>
+      Add Unit
+    </button>
+  </div>
+
+  <!-- ── Filters ──────────────────────────────────────────────────────────── -->
+  <div class="filter-bar">
+
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search units</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [formControl]="searchControl" placeholder="Unit number, floor, type…">
+      <button
+        *ngIf="searchControl.value"
+        mat-icon-button matSuffix
+        (click)="searchControl.setValue('')"
+        matTooltip="Clear search">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Status</mat-label>
+      <mat-select [formControl]="statusFilter">
+        <mat-option value="all">All statuses</mat-option>
+        <mat-option *ngFor="let s of unitStatuses" [value]="s">{{ statusLabel(s) }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Floor</mat-label>
+      <mat-select [formControl]="floorFilter">
+        <mat-option value="all">All floors</mat-option>
+        <mat-option *ngFor="let f of availableFloors" [value]="f.toString()">Floor {{ f }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Type</mat-label>
+      <mat-select [formControl]="typeFilter">
+        <mat-option value="all">All types</mat-option>
+        <mat-option *ngFor="let t of unitTypes" [value]="t">{{ t }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button
+      *ngIf="hasActiveFilters"
+      mat-stroked-button
+      class="clear-btn"
+      (click)="clearFilters()"
+      matTooltip="Clear all filters">
+      <mat-icon>filter_alt_off</mat-icon>
+      Clear
+    </button>
+
+  </div>
+
+  <!-- ── Results summary ──────────────────────────────────────────────────── -->
+  <div class="results-summary" *ngIf="!loading">
+    <span>{{ totalCount }} unit{{ totalCount !== 1 ? 's' : '' }} found</span>
+  </div>
+
+  <!-- ── Skeleton Loading ─────────────────────────────────────────────────── -->
+  <div class="bms-card skeleton-card" *ngIf="loading">
+    <div class="skeleton-row" *ngFor="let i of [1,2,3,4,5,6]">
+      <div class="skeleton skeleton-cell wide"></div>
+      <div class="skeleton skeleton-cell"></div>
+      <div class="skeleton skeleton-cell"></div>
+      <div class="skeleton skeleton-cell"></div>
+      <div class="skeleton skeleton-cell"></div>
+      <div class="skeleton skeleton-cell narrow"></div>
+    </div>
+  </div>
+
+  <!-- ── Desktop Table ────────────────────────────────────────────────────── -->
+  <div class="bms-card table-card" *ngIf="!loading">
+
+    <table
+      mat-table
+      [dataSource]="dataSource"
+      matSort
+      (matSortChange)="onSortChange($event)"
+      class="units-table"
+      *ngIf="dataSource.data.length > 0">
+
+      <!-- Unit Number -->
+      <ng-container matColumnDef="unitNumber">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Unit</th>
+        <td mat-cell *matCellDef="let unit">
+          <div class="unit-cell">
+            <div class="unit-avatar">
+              <mat-icon>apartment</mat-icon>
+            </div>
+            <div class="unit-info">
+              <span class="unit-number">{{ unit.unitNumber }}</span>
+              <span class="unit-type-sub">{{ unit.unitType }}</span>
+            </div>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Floor -->
+      <ng-container matColumnDef="floorNumber">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Floor</th>
+        <td mat-cell *matCellDef="let unit">
+          <span class="floor-badge">Floor {{ unit.floorNumber }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Unit Type -->
+      <ng-container matColumnDef="unitType">
+        <th mat-header-cell *matHeaderCellDef>Type</th>
+        <td mat-cell *matCellDef="let unit" class="type-cell">{{ unit.unitType }}</td>
+      </ng-container>
+
+      <!-- Area -->
+      <ng-container matColumnDef="areaSqMeters">
+        <th mat-header-cell *matHeaderCellDef>Area</th>
+        <td mat-cell *matCellDef="let unit" class="area-cell">
+          {{ unit.areaSqMeters | number:'1.0-1' }} m²
+        </td>
+      </ng-container>
+
+      <!-- Monthly Rent -->
+      <ng-container matColumnDef="monthlyRent">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Monthly Rent</th>
+        <td mat-cell *matCellDef="let unit" class="rent-cell">
+          {{ unit.monthlyRent | number:'1.2-2' }}
+        </td>
+      </ng-container>
+
+      <!-- Status -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+        <td mat-cell *matCellDef="let unit">
+          <span class="badge" [ngClass]="statusClass(unit.status)">
+            {{ statusLabel(unit.status) }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Actions -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let unit" class="actions-cell">
+
+          <button
+            mat-icon-button
+            matTooltip="View details"
+            (click)="openDetail(unit)">
+            <mat-icon>visibility</mat-icon>
+          </button>
+
+          <button
+            *ngIf="canEdit"
+            mat-icon-button
+            matTooltip="Edit unit"
+            (click)="openEdit(unit)">
+            <mat-icon>edit</mat-icon>
+          </button>
+
+          <button
+            *ngIf="canDelete"
+            mat-icon-button
+            matTooltip="Delete unit"
+            class="delete-btn"
+            (click)="openDelete(unit)">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="unit-row"></tr>
+
+    </table>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="dataSource.data.length === 0">
+      <mat-icon>apartment</mat-icon>
+      <h3>No units found</h3>
+      <p *ngIf="hasActiveFilters">No units match your current filters. Try adjusting your search.</p>
+      <p *ngIf="!hasActiveFilters">No units have been added yet.</p>
+      <div class="empty-actions">
+        <button mat-stroked-button *ngIf="hasActiveFilters" (click)="clearFilters()">
+          <mat-icon>filter_alt_off</mat-icon>
+          Clear Filters
+        </button>
+        <button mat-raised-button color="primary" *ngIf="canCreate && !hasActiveFilters" (click)="openCreate()">
+          <mat-icon>add</mat-icon>
+          Add First Unit
+        </button>
+      </div>
+    </div>
+
+    <!-- Paginator -->
+    <mat-paginator
+      *ngIf="totalCount > 0"
+      [length]="totalCount"
+      [pageSize]="pageSize"
+      [pageIndex]="pageIndex"
+      [pageSizeOptions]="pageSizeOptions"
+      (page)="onPageChange($event)"
+      showFirstLastButtons>
+    </mat-paginator>
+
+  </div>
+
+  <!-- ── Mobile Card Layout ────────────────────────────────────────────────── -->
+  <div class="mobile-cards" *ngIf="!loading && dataSource.data.length > 0">
+    <div class="unit-card bms-card" *ngFor="let unit of dataSource.data">
+
+      <div class="card-header">
+        <div class="card-title">
+          <div class="unit-avatar">
+            <mat-icon>apartment</mat-icon>
+          </div>
+          <div>
+            <span class="unit-number">{{ unit.unitNumber }}</span>
+            <span class="floor-badge">Floor {{ unit.floorNumber }}</span>
+          </div>
+        </div>
+        <span class="badge" [ngClass]="statusClass(unit.status)">
+          {{ statusLabel(unit.status) }}
+        </span>
+      </div>
+
+      <div class="card-body">
+        <div class="card-row">
+          <span class="card-label">Type</span>
+          <span class="card-value">{{ unit.unitType }}</span>
+        </div>
+        <div class="card-row">
+          <span class="card-label">Area</span>
+          <span class="card-value">{{ unit.areaSqMeters | number:'1.0-1' }} m²</span>
+        </div>
+        <div class="card-row">
+          <span class="card-label">Monthly Rent</span>
+          <span class="card-value rent-value">{{ unit.monthlyRent | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <button mat-stroked-button (click)="openDetail(unit)">
+          <mat-icon>visibility</mat-icon>
+          Details
+        </button>
+        <button mat-stroked-button *ngIf="canEdit" (click)="openEdit(unit)">
+          <mat-icon>edit</mat-icon>
+          Edit
+        </button>
+        <button mat-stroked-button color="warn" *ngIf="canDelete" (click)="openDelete(unit)">
+          <mat-icon>delete_outline</mat-icon>
+          Delete
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,52 @@
+<!-- Header -->
+<div class="admin-dash-header">
+  <div class="header-left">
+    <div class="admin-badge">
+      <mat-icon>admin_panel_settings</mat-icon>
+      <span>Administrator</span>
+    </div>
+    <h1>System Overview</h1>
+    <p>Full analytics and management access — {{ todayLong }}</p>
+  </div>
+  <div class="header-actions">
+    <button mat-stroked-button routerLink="/admin/users">
+      <mat-icon>manage_accounts</mat-icon>
+      Users
+    </button>
+    <button mat-raised-button color="primary" routerLink="/reports">
+      <mat-icon>assessment</mat-icon>
+      Reports
+    </button>
+  </div>
+</div>
+
+<!-- KPI grid -->
+<div class="kpi-grid">
+  <a *ngFor="let kpi of kpis" [routerLink]="kpi.route" class="kpi-card">
+    <div class="kpi-icon" [style.background]="kpi.bg">
+      <mat-icon>{{ kpi.icon }}</mat-icon>
+    </div>
+    <div class="kpi-body">
+      <div class="kpi-value">{{ kpi.value }}</div>
+      <div class="kpi-label">{{ kpi.label }}</div>
+    </div>
+    <mat-icon class="kpi-arrow">chevron_right</mat-icon>
+  </a>
+</div>
+
+<!-- Management shortcuts -->
+<div class="section-label">Management shortcuts</div>
+<div class="shortcuts-grid">
+  <a *ngFor="let s of shortcuts"
+     [routerLink]="s.route"
+     class="shortcut-card shortcut-card--{{ s.color }}">
+    <div class="sc-icon">
+      <mat-icon>{{ s.icon }}</mat-icon>
+    </div>
+    <div class="sc-body">
+      <span class="sc-title">{{ s.label }}</span>
+      <span class="sc-desc">{{ s.description }}</span>
+    </div>
+    <mat-icon class="sc-arrow">arrow_forward</mat-icon>
+  </a>
+</div>

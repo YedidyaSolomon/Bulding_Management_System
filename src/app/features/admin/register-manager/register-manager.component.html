@@ -1,0 +1,81 @@
+<div class="bms-page fade-in">
+
+  <div class="bms-page-header">
+    <div>
+      <h1>Register Manager</h1>
+      <p>Create a new Manager account. The role is assigned automatically.</p>
+    </div>
+    <button mat-stroked-button routerLink="/admin/users">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Users
+    </button>
+  </div>
+
+  <div class="form-card bms-card">
+    <div class="bms-card-header">
+      <h3>Manager Account Details</h3>
+      <span class="role-badge">
+        <mat-icon>shield</mat-icon>
+        Manager role
+      </span>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="form-body">
+
+      <!-- Full name -->
+      <mat-form-field appearance="outline">
+        <mat-label>Full name</mat-label>
+        <input matInput formControlName="fullName" placeholder="Jane Smith">
+        <mat-icon matPrefix>person_outline</mat-icon>
+        <mat-error *ngIf="fullName.hasError('required')">Full name is required.</mat-error>
+        <mat-error *ngIf="fullName.hasError('minlength')">At least 2 characters.</mat-error>
+      </mat-form-field>
+
+      <!-- Email -->
+      <mat-form-field appearance="outline">
+        <mat-label>Email address</mat-label>
+        <input matInput type="email" formControlName="email" placeholder="jane@yourcompany.com">
+        <mat-icon matPrefix>mail_outline</mat-icon>
+        <mat-error *ngIf="email.hasError('required')">Email is required.</mat-error>
+        <mat-error *ngIf="email.hasError('email')">Enter a valid email address.</mat-error>
+      </mat-form-field>
+
+      <!-- Password -->
+      <mat-form-field appearance="outline">
+        <mat-label>Password</mat-label>
+        <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password">
+        <mat-icon matPrefix>lock_outline</mat-icon>
+        <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
+          <mat-icon>{{ hidePassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+        </button>
+        <mat-hint>Min 8 chars, uppercase, lowercase, digit &amp; special character.</mat-hint>
+        <mat-error *ngIf="password.hasError('required')">Password is required.</mat-error>
+        <mat-error *ngIf="password.hasError('minlength')">Minimum 8 characters.</mat-error>
+        <mat-error *ngIf="password.hasError('pattern')">Must include uppercase, lowercase, digit &amp; special character.</mat-error>
+      </mat-form-field>
+
+      <!-- Confirm password -->
+      <mat-form-field appearance="outline">
+        <mat-label>Confirm password</mat-label>
+        <input matInput [type]="hideConfirm ? 'password' : 'text'" formControlName="confirmPassword">
+        <mat-icon matPrefix>lock_outline</mat-icon>
+        <button mat-icon-button matSuffix type="button" (click)="hideConfirm = !hideConfirm">
+          <mat-icon>{{ hideConfirm ? 'visibility' : 'visibility_off' }}</mat-icon>
+        </button>
+        <mat-error *ngIf="confirmPassword.hasError('required')">Please confirm the password.</mat-error>
+        <mat-error *ngIf="form.hasError('passwordMismatch') && confirmPassword.touched">Passwords do not match.</mat-error>
+      </mat-form-field>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button mat-button type="button" routerLink="/admin/users" [disabled]="loading">Cancel</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="loading">
+          <mat-spinner diameter="18" *ngIf="loading" />
+          <mat-icon *ngIf="!loading">person_add</mat-icon>
+          <span *ngIf="!loading">Create Manager</span>
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

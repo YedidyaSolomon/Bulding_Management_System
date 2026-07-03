@@ -1,0 +1,30 @@
+<div class="dialog-header">
+  <div class="warning-icon">
+    <mat-icon>delete_forever</mat-icon>
+  </div>
+  <div>
+    <h2 mat-dialog-title>Delete Unit</h2>
+    <p>This action cannot be undone.</p>
+  </div>
+</div>
+
+<mat-dialog-content>
+  <p class="confirm-text">
+    Are you sure you want to delete unit
+    <strong>{{ data.unit.unitNumber }}</strong>
+    (Floor {{ data.unit.floorNumber }})?
+  </p>
+  <div class="info-note">
+    <mat-icon>info</mat-icon>
+    <span>Units with existing lease records cannot be deleted.</span>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="loading">Cancel</button>
+  <button mat-raised-button color="warn" (click)="onConfirm()" [disabled]="loading">
+    <mat-spinner diameter="18" *ngIf="loading" />
+    <mat-icon *ngIf="!loading">delete</mat-icon>
+    <span *ngIf="!loading">Delete</span>
+  </button>
+</mat-dialog-actions>

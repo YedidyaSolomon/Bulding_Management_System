@@ -1,0 +1,67 @@
+<!-- Session expired notice -->
+<div class="session-notice" *ngIf="sessionExpired">
+  <mat-icon>info</mat-icon>
+  <span>Your session has expired. Please sign in again.</span>
+</div>
+
+<!-- Header -->
+<div class="auth-header">
+  <h2>Welcome back</h2>
+  <p>Sign in to your account to continue</p>
+</div>
+
+<!-- Form -->
+<form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="auth-form">
+
+  <!-- Email -->
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Email address</mat-label>
+    <input
+      matInput
+      type="email"
+      formControlName="email"
+      placeholder="you@example.com"
+      autocomplete="email">
+    <mat-icon matPrefix>mail_outline</mat-icon>
+    <mat-error *ngIf="email.hasError('required')">Email is required.</mat-error>
+    <mat-error *ngIf="email.hasError('email')">Enter a valid email address.</mat-error>
+  </mat-form-field>
+
+  <!-- Password -->
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Password</mat-label>
+    <input
+      matInput
+      [type]="hidePassword ? 'password' : 'text'"
+      formControlName="password"
+      autocomplete="current-password">
+    <mat-icon matPrefix>lock_outline</mat-icon>
+    <button
+      mat-icon-button matSuffix type="button"
+      (click)="hidePassword = !hidePassword"
+      [attr.aria-label]="'Toggle password visibility'">
+      <mat-icon>{{ hidePassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+    </button>
+    <mat-error *ngIf="password.hasError('required')">Password is required.</mat-error>
+    <mat-error *ngIf="password.hasError('minlength')">Password must be at least 6 characters.</mat-error>
+  </mat-form-field>
+
+  <!-- Submit -->
+  <button
+    mat-raised-button
+    color="primary"
+    type="submit"
+    class="submit-btn"
+    [disabled]="loading">
+    <mat-spinner diameter="20" *ngIf="loading" />
+    <span *ngIf="!loading">Sign in</span>
+  </button>
+
+</form>
+
+<!-- Register link -->
+<div class="auth-footer">
+  <p>Don't have an account?
+    <a routerLink="/auth/register" class="auth-link">Create one</a>
+  </p>
+</div>

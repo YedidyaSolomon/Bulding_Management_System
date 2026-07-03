@@ -1,0 +1,24 @@
+<mat-sidenav-container class="shell-container">
+
+  <!-- ── Sidebar ─────────────────────────────────────────────── -->
+  <mat-sidenav
+    #sidenav
+    [mode]="sidenavMode"
+    [opened]="sidenavOpened"
+    [class.collapsed]="isCollapsed && !isMobile"
+    class="bms-sidenav">
+    <app-sidebar [collapsed]="isCollapsed && !isMobile" />
+  </mat-sidenav>
+
+  <!-- ── Main content ───────────────────────────────────────── -->
+  <mat-sidenav-content class="bms-content">
+    <app-toolbar
+      [sidenavCollapsed]="isCollapsed"
+      (menuToggle)="toggleSidenav()" />
+
+    <main class="bms-main fade-in">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+
+</mat-sidenav-container>
