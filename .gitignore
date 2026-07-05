@@ -1,0 +1,38 @@
+# Build folders
+bin/
+obj/
+
+# Visual Studio
+.vs/
+
+# Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# User files
+*.user
+*.suo
+*.userosscache
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.*
+
+# Secrets
+appsettings.Development.json
+appsettings.Local.json
+
+# EF local database
+*.mdf
+*.ldf
+
+# NuGet packages
+packages/
+
+# Publish output
+publish/
