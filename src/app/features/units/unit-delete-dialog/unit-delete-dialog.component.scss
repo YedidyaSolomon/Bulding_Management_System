@@ -1,0 +1,79 @@
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 24px 4px;
+
+  .warning-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 50%;
+    background: #FEE2E2;
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+      color: #EF4444;
+    }
+  }
+
+  h2 {
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 600;
+    padding: 0;
+    color: var(--bms-text-primary);
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--bms-text-secondary);
+  }
+}
+
+mat-dialog-content {
+  padding: 8px 24px 8px !important;
+}
+
+.confirm-text {
+  font-size: 14px;
+  color: var(--bms-text-primary);
+  margin: 0 0 14px;
+  line-height: 1.6;
+}
+
+.info-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--bms-text-secondary);
+  background: var(--bms-bg);
+  border: 1px solid var(--bms-border);
+  border-radius: 6px;
+  padding: 10px 12px;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--bms-text-muted);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
+mat-dialog-actions {
+  padding: 8px 24px 20px;
+  gap: 8px;
+
+  button mat-spinner { display: inline-flex; margin-right: 6px; }
+  button mat-icon    { margin-right: 6px; font-size: 18px; width: 18px; height: 18px; }
+}

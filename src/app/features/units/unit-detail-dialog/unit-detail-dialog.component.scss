@@ -1,0 +1,119 @@
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 24px 4px;
+
+  .unit-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    border-radius: 12px;
+    background: var(--bms-primary-light);
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 26px;
+      width: 26px;
+      height: 26px;
+      color: var(--bms-primary);
+    }
+  }
+
+  .header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      padding: 0;
+      color: var(--bms-text-primary);
+    }
+  }
+}
+
+mat-dialog-content {
+  padding: 8px 24px 8px !important;
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+.detail-section {
+  padding: 14px 0;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--bms-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--bms-text-muted);
+  }
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.detail-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--bms-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.detail-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--bms-text-primary);
+}
+
+.rent-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--bms-primary);
+}
+
+.description-text {
+  font-size: 13px;
+  color: var(--bms-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+  background: var(--bms-bg);
+  border: 1px solid var(--bms-border);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+mat-dialog-actions {
+  padding: 8px 24px 20px;
+}

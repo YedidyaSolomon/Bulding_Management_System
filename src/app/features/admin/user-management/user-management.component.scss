@@ -1,0 +1,70 @@
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+
+  .search-field {
+    flex: 1;
+    min-width: 240px;
+  }
+
+  .role-filter {
+    width: 160px;
+  }
+}
+
+.users-table {
+  width: 100%;
+}
+
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+
+  .user-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--bms-primary);
+    color: #fff;
+    font-weight: 600;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .user-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--bms-text-primary);
+  }
+}
+
+.email-cell {
+  font-size: 13px;
+  color: var(--bms-text-secondary);
+}
+
+.role-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  &--admin   { background: rgba(99,102,241,.12);  color: #6366F1; }
+  &--manager { background: rgba(16,185,129,.12);  color: #059669; }
+  &--viewer  { background: rgba(100,116,139,.12); color: #475569; }
+}
+
+.actions-cell {
+  text-align: right;
+}

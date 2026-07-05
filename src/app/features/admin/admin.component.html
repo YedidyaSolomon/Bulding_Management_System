@@ -1,0 +1,38 @@
+<div class="bms-page fade-in">
+
+  <!-- Page header -->
+  <div class="bms-page-header">
+    <div>
+      <div class="admin-role-badge">
+        <mat-icon>admin_panel_settings</mat-icon>
+        Administrator
+      </div>
+      <h1>Admin Panel</h1>
+      <p>System administration, user management and configuration.</p>
+    </div>
+  </div>
+
+  <!-- Section cards -->
+  <div class="admin-sections-grid">
+    <a
+      *ngFor="let s of sections"
+      [routerLink]="s.route"
+      class="admin-section-card admin-section-card--{{ s.color }}">
+
+      <div class="asc-icon">
+        <mat-icon>{{ s.icon }}</mat-icon>
+      </div>
+
+      <div class="asc-body">
+        <div class="asc-header">
+          <h3>{{ s.title }}</h3>
+          <span *ngIf="s.badge" class="asc-badge">{{ s.badge }}</span>
+        </div>
+        <p>{{ s.description }}</p>
+      </div>
+
+      <mat-icon class="asc-arrow">arrow_forward</mat-icon>
+    </a>
+  </div>
+
+</div>

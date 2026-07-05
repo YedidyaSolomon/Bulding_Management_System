@@ -1,0 +1,276 @@
+// ── Angular Material theming ─────────────────────────────────────────────────
+@use '@angular/material' as mat;
+
+// BMS Custom Color Palette (Primary: #2563EB - Blue 600)
+$bms-primary: (
+  50:   #eff6ff,
+  100:  #dbeafe,
+  200:  #bfdbfe,
+  300:  #93c5fd,
+  400:  #60a5fa,
+  500:  #3b82f6,
+  600:  #2563eb,
+  700:  #1d4ed8,
+  800:  #1e40af,
+  900:  #1e3a8a,
+  contrast: (
+    50:   rgba(0,0,0,.87),
+    100:  rgba(0,0,0,.87),
+    200:  rgba(0,0,0,.87),
+    300:  rgba(0,0,0,.87),
+    400:  rgba(0,0,0,.87),
+    500:  #fff,
+    600:  #fff,
+    700:  #fff,
+    800:  #fff,
+    900:  #fff,
+  )
+);
+
+html {
+  @include mat.theme((
+    color: (
+      theme-type: light,
+      primary: mat.$azure-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+// ── CSS Design Tokens ────────────────────────────────────────────────────────
+:root {
+  --bms-primary:        #2563EB;
+  --bms-primary-dark:   #1D4ED8;
+  --bms-primary-light:  #DBEAFE;
+  --bms-primary-text:   #ffffff;
+
+  --bms-accent:         #7C3AED;
+  --bms-warn:           #EF4444;
+  --bms-success:        #10B981;
+  --bms-warning:        #F59E0B;
+
+  --bms-bg:             #F8FAFC;
+  --bms-bg-card:        #ffffff;
+  --bms-bg-sidebar:     #1E293B;
+  --bms-bg-toolbar:     #ffffff;
+
+  --bms-text-primary:   #1E293B;
+  --bms-text-secondary: #64748B;
+  --bms-text-muted:     #94A3B8;
+  --bms-text-inverse:   #ffffff;
+
+  --bms-border:         #E2E8F0;
+  --bms-border-radius:  8px;
+  --bms-border-radius-lg: 12px;
+
+  --bms-shadow-sm:      0 1px 3px 0 rgba(0,0,0,.08), 0 1px 2px 0 rgba(0,0,0,.04);
+  --bms-shadow:         0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -1px rgba(0,0,0,.06);
+  --bms-shadow-lg:      0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05);
+
+  --bms-sidebar-width:        260px;
+  --bms-sidebar-collapsed-w:  72px;
+  --bms-toolbar-height:       64px;
+
+  --bms-transition:     all .2s cubic-bezier(.4,0,.2,1);
+}
+
+// ── Reset & Base ─────────────────────────────────────────────────────────────
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bms-bg);
+  color: var(--bms-text-primary);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+// ── Material overrides ───────────────────────────────────────────────────────
+.mat-mdc-card {
+  border-radius: var(--bms-border-radius) !important;
+  box-shadow: var(--bms-shadow-sm) !important;
+  border: 1px solid var(--bms-border) !important;
+}
+
+.mat-mdc-raised-button.mat-primary {
+  background-color: var(--bms-primary) !important;
+}
+
+.mat-mdc-table {
+  border-radius: var(--bms-border-radius) !important;
+  overflow: hidden;
+  border: 1px solid var(--bms-border);
+}
+
+.mat-mdc-header-row {
+  background: var(--bms-bg) !important;
+}
+
+.mat-mdc-header-cell {
+  font-weight: 600 !important;
+  color: var(--bms-text-secondary) !important;
+  font-size: 12px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mat-mdc-row:hover {
+  background: #F8FAFC !important;
+}
+
+.mat-mdc-snack-bar-container.snack-error .mdc-snackbar__surface {
+  background: #EF4444 !important;
+}
+
+.mat-mdc-snack-bar-container.snack-success .mdc-snackbar__surface {
+  background: #10B981 !important;
+}
+
+.mat-mdc-dialog-container {
+  border-radius: var(--bms-border-radius-lg) !important;
+}
+
+// ── Utility classes ──────────────────────────────────────────────────────────
+.bms-page {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.bms-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--bms-text-primary);
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    font-size: 14px;
+    color: var(--bms-text-secondary);
+    margin: 4px 0 0 0;
+  }
+}
+
+.bms-card {
+  background: var(--bms-bg-card);
+  border-radius: var(--bms-border-radius-lg);
+  box-shadow: var(--bms-shadow-sm);
+  border: 1px solid var(--bms-border);
+  overflow: hidden;
+}
+
+.bms-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--bms-border);
+
+  h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--bms-text-primary);
+  }
+}
+
+// Status badges
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+
+  &.badge-success  { background: #D1FAE5; color: #065F46; }
+  &.badge-warning  { background: #FEF3C7; color: #92400E; }
+  &.badge-danger   { background: #FEE2E2; color: #991B1B; }
+  &.badge-info     { background: #DBEAFE; color: #1E40AF; }
+  &.badge-neutral  { background: #F1F5F9; color: #475569; }
+}
+
+// Loading overlay
+.loading-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+}
+
+// Empty state
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  color: var(--bms-text-muted);
+  text-align: center;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    opacity: 0.4;
+  }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--bms-text-secondary);
+    margin: 0 0 8px;
+  }
+
+  p {
+    font-size: 14px;
+    color: var(--bms-text-muted);
+    margin: 0;
+    max-width: 300px;
+  }
+}
+
+// Skeleton loading
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes skeleton-loading {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+// Scrollbar
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+// Animations
+.fade-in {
+  animation: fadeIn .3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

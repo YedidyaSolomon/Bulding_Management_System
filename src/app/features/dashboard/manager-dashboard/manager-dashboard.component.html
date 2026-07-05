@@ -1,0 +1,41 @@
+<!-- Greeting -->
+<div class="dash-header">
+  <div>
+    <h1>Welcome back, {{ user.fullName.split(' ')[0] }}</h1>
+    <p>Operational overview for {{ today }}</p>
+  </div>
+  <button mat-raised-button color="primary" routerLink="/reports">
+    <mat-icon>bar_chart</mat-icon>
+    View Reports
+  </button>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-grid">
+  <div *ngFor="let kpi of kpis" class="kpi-card kpi-card--{{ kpi.color }}">
+    <div class="kpi-icon">
+      <mat-icon>{{ kpi.icon }}</mat-icon>
+    </div>
+    <div class="kpi-body">
+      <div class="kpi-value">{{ kpi.value }}</div>
+      <div class="kpi-label">{{ kpi.label }}</div>
+      <div class="kpi-trend" *ngIf="kpi.trend">
+        <mat-icon *ngIf="kpi.trendUp !== undefined">
+          {{ kpi.trendUp ? 'trending_up' : 'trending_down' }}
+        </mat-icon>
+        <span>{{ kpi.trend }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick actions -->
+<div class="section-title">Quick actions</div>
+<div class="actions-grid">
+  <a *ngFor="let action of quickActions"
+     [routerLink]="action.route"
+     class="action-card action-card--{{ action.color }}">
+    <mat-icon>{{ action.icon }}</mat-icon>
+    <span>{{ action.label }}</span>
+  </a>
+</div>

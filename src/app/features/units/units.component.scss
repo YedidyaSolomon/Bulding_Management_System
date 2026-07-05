@@ -1,0 +1,294 @@
+// ── Filter bar ────────────────────────────────────────────────────────────────
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+
+  .search-field {
+    flex: 1;
+    min-width: 220px;
+  }
+
+  .filter-field {
+    width: 150px;
+
+    @media (max-width: 600px) {
+      flex: 1;
+      min-width: 130px;
+    }
+  }
+
+  .clear-btn {
+    height: 56px;
+    align-self: flex-start;
+    white-space: nowrap;
+
+    mat-icon {
+      margin-right: 4px;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+// ── Results summary ───────────────────────────────────────────────────────────
+.results-summary {
+  font-size: 13px;
+  color: var(--bms-text-secondary);
+  margin-bottom: 12px;
+}
+
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+.skeleton-card {
+  padding: 16px;
+}
+
+.skeleton-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--bms-border);
+
+  &:last-child { border-bottom: none; }
+}
+
+.skeleton-cell {
+  height: 16px;
+  border-radius: 4px;
+  flex: 1;
+
+  &.wide   { flex: 2; }
+  &.narrow { flex: 0.5; }
+}
+
+// ── Table card ────────────────────────────────────────────────────────────────
+.table-card {
+  overflow: hidden;
+}
+
+.units-table {
+  width: 100%;
+}
+
+// ── Unit cell ─────────────────────────────────────────────────────────────────
+.unit-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+}
+
+.unit-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: 8px;
+  background: var(--bms-primary-light);
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: var(--bms-primary);
+  }
+}
+
+.unit-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.unit-number {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bms-text-primary);
+}
+
+.unit-type-sub {
+  font-size: 11px;
+  color: var(--bms-text-muted);
+}
+
+// ── Floor badge ───────────────────────────────────────────────────────────────
+.floor-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--bms-bg);
+  border: 1px solid var(--bms-border);
+  color: var(--bms-text-secondary);
+  white-space: nowrap;
+}
+
+// ── Table cells ───────────────────────────────────────────────────────────────
+.type-cell {
+  font-size: 13px;
+  color: var(--bms-text-secondary);
+}
+
+.area-cell {
+  font-size: 13px;
+  color: var(--bms-text-secondary);
+}
+
+.rent-cell {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bms-text-primary);
+}
+
+.actions-cell {
+  text-align: right;
+  white-space: nowrap;
+
+  .delete-btn {
+    color: var(--bms-warn);
+    &:hover { background: rgba(239,68,68,.08); }
+  }
+}
+
+.unit-row {
+  cursor: pointer;
+  transition: background var(--bms-transition);
+}
+
+// ── Empty state actions ───────────────────────────────────────────────────────
+.empty-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+
+  button mat-icon {
+    margin-right: 6px;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+// ── Mobile card layout ────────────────────────────────────────────────────────
+// Hidden on desktop, shown on mobile
+.mobile-cards {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.unit-card {
+  padding: 16px;
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    gap: 10px;
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .unit-number {
+        display: block;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--bms-text-primary);
+      }
+
+      .floor-badge {
+        display: block;
+        margin-top: 3px;
+      }
+    }
+  }
+
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+  }
+
+  .card-label {
+    color: var(--bms-text-muted);
+    font-weight: 500;
+  }
+
+  .card-value {
+    color: var(--bms-text-primary);
+    font-weight: 500;
+  }
+
+  .rent-value {
+    font-weight: 700;
+    color: var(--bms-primary);
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    button {
+      flex: 1;
+      min-width: 80px;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        margin-right: 4px;
+      }
+    }
+  }
+}
+
+// ── Responsive breakpoints ────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  // Hide table, show cards
+  .table-card {
+    display: none;
+  }
+
+  .mobile-cards {
+    display: flex;
+  }
+
+  .filter-bar {
+    .filter-field {
+      width: calc(50% - 6px);
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .filter-bar {
+    .search-field,
+    .filter-field {
+      width: 100%;
+      flex: unset;
+    }
+  }
+}

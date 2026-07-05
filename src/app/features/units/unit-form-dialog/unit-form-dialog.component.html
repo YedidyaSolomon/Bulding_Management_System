@@ -1,0 +1,89 @@
+<div class="dialog-header">
+  <mat-icon class="dialog-icon">{{ isEdit ? 'edit' : 'add_home' }}</mat-icon>
+  <div>
+    <h2 mat-dialog-title>{{ isEdit ? 'Edit Unit' : 'Add New Unit' }}</h2>
+    <p>{{ isEdit ? 'Update the unit details below.' : 'Fill in the details to create a new unit.' }}</p>
+  </div>
+</div>
+
+<mat-dialog-content>
+  <form [formGroup]="form" novalidate class="unit-form">
+
+    <!-- Row 1: Unit Number + Floor -->
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Unit Number</mat-label>
+        <input matInput formControlName="unitNumber" placeholder="e.g. A-101">
+        <mat-icon matPrefix>tag</mat-icon>
+        <mat-error *ngIf="unitNumber.hasError('required')">Unit number is required.</mat-error>
+        <mat-error *ngIf="unitNumber.hasError('maxlength')">Max 20 characters.</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Floor Number</mat-label>
+        <input matInput type="number" formControlName="floorNumber" placeholder="e.g. 1">
+        <mat-icon matPrefix>layers</mat-icon>
+        <mat-error *ngIf="floorNumber.hasError('required')">Floor number is required.</mat-error>
+        <mat-error *ngIf="floorNumber.hasError('min')">Must be 0 or above.</mat-error>
+        <mat-error *ngIf="floorNumber.hasError('max')">Max floor is 200.</mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Row 2: Unit Type + Status -->
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Unit Type</mat-label>
+        <mat-select formControlName="unitType">
+          <mat-option *ngFor="let t of unitTypes" [value]="t">{{ t }}</mat-option>
+        </mat-select>
+        <mat-icon matPrefix>category</mat-icon>
+        <mat-error *ngIf="unitType.hasError('required')">Unit type is required.</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select formControlName="status">
+          <mat-option *ngFor="let s of unitStatuses" [value]="s">{{ statusLabel(s) }}</mat-option>
+        </mat-select>
+        <mat-icon matPrefix>info_outline</mat-icon>
+        <mat-hint *ngIf="!isEdit">Set automatically to Available on creation.</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <!-- Row 3: Area + Rent -->
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Area (sq. meters)</mat-label>
+        <input matInput type="number" formControlName="areaSqMeters" placeholder="e.g. 45">
+        <mat-icon matPrefix>square_foot</mat-icon>
+        <mat-error *ngIf="areaSqMeters.hasError('required')">Area is required.</mat-error>
+        <mat-error *ngIf="areaSqMeters.hasError('min')">Must be at least 1 sq. meter.</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Monthly Rent</mat-label>
+        <input matInput type="number" formControlName="monthlyRent" placeholder="e.g. 1500">
+        <mat-icon matPrefix>payments</mat-icon>
+        <mat-error *ngIf="monthlyRent.hasError('required')">Monthly rent is required.</mat-error>
+        <mat-error *ngIf="monthlyRent.hasError('min')">Rent must be greater than 0.</mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Description -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Description (optional)</mat-label>
+      <textarea matInput formControlName="description" rows="3" placeholder="Any additional notes about this unit…"></textarea>
+      <mat-icon matPrefix>notes</mat-icon>
+    </mat-form-field>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="loading">Cancel</button>
+  <button mat-raised-button color="primary" (click)="onSave()" [disabled]="loading">
+    <mat-spinner diameter="18" *ngIf="loading" />
+    <mat-icon *ngIf="!loading">{{ isEdit ? 'save' : 'add' }}</mat-icon>
+    <span *ngIf="!loading">{{ isEdit ? 'Save Changes' : 'Create Unit' }}</span>
+  </button>
+</mat-dialog-actions>

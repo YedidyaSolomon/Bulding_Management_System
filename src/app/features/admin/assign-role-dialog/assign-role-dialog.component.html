@@ -1,0 +1,37 @@
+<div class="dialog-header">
+  <mat-icon class="dialog-icon">manage_accounts</mat-icon>
+  <div>
+    <h2 mat-dialog-title>Assign Role</h2>
+    <p>Change the role for <strong>{{ user.fullName }}</strong></p>
+  </div>
+</div>
+
+<mat-dialog-content>
+  <div class="current-role">
+    <span class="label">Current role:</span>
+    <span class="role-chip" [ngClass]="'role-chip--' + user.role.toLowerCase()">{{ user.role }}</span>
+  </div>
+
+  <form [formGroup]="form" novalidate>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>New role</mat-label>
+      <mat-select formControlName="role">
+        <mat-option *ngFor="let r of assignableRoles" [value]="r">{{ r }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="form.get('role')?.hasError('required')">Please select a role.</mat-error>
+    </mat-form-field>
+  </form>
+
+  <p class="info-note">
+    <mat-icon>info</mat-icon>
+    The Admin role cannot be assigned here. It is seeded at startup.
+  </p>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="loading">Cancel</button>
+  <button mat-raised-button color="primary" (click)="onSave()" [disabled]="loading">
+    <mat-spinner diameter="18" *ngIf="loading" />
+    <span *ngIf="!loading">Save</span>
+  </button>
+</mat-dialog-actions>

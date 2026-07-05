@@ -1,0 +1,135 @@
+.auth-wrapper {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bms-bg);
+}
+
+// ── Left branding panel ───────────────────────────────────────────────────────
+.auth-branding {
+  flex: 1;
+  background: linear-gradient(135deg, #1E40AF 0%, #2563EB 50%, #7C3AED 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  position: relative;
+  overflow: hidden;
+
+  // Decorative circles
+  &::before, &::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,.06);
+  }
+  &::before {
+    width: 400px;
+    height: 400px;
+    bottom: -100px;
+    right: -100px;
+  }
+  &::after {
+    width: 200px;
+    height: 200px;
+    top: 60px;
+    right: 80px;
+  }
+
+  @media (max-width: 900px) { display: none; }
+}
+
+.branding-content {
+  max-width: 420px;
+  color: #fff;
+  position: relative;
+  z-index: 1;
+
+  .brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 40px;
+
+    .brand-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      background: rgba(255,255,255,.2);
+      border-radius: 10px;
+      backdrop-filter: blur(4px);
+
+      mat-icon {
+        font-size: 24px;
+        color: #fff;
+      }
+    }
+
+    .brand-text {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #fff;
+    }
+  }
+
+  h1 {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0 0 20px;
+    letter-spacing: -0.03em;
+  }
+
+  p {
+    font-size: 16px;
+    line-height: 1.7;
+    margin: 0 0 36px;
+    color: rgba(255,255,255,.8);
+  }
+}
+
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: rgba(255,255,255,.85);
+
+  .feature-dot {
+    width: 8px;
+    height: 8px;
+    min-width: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.6);
+  }
+}
+
+// ── Right form panel ──────────────────────────────────────────────────────────
+.auth-form-panel {
+  width: 480px;
+  min-width: 340px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  background: var(--bms-bg-card);
+  overflow-y: auto;
+
+  @media (max-width: 900px) {
+    width: 100%;
+    background: var(--bms-bg);
+  }
+}
+
+.auth-form-container {
+  width: 100%;
+  max-width: 380px;
+}

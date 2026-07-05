@@ -1,0 +1,47 @@
+.form-card {
+  max-width: 540px;
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(16,185,129,.1);
+  border: 1px solid rgba(16,185,129,.25);
+  border-radius: 20px;
+  padding: 3px 10px 3px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #059669;
+
+  mat-icon {
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+  }
+}
+
+.form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px;
+
+  mat-form-field { width: 100%; }
+
+  mat-icon[matPrefix] {
+    color: var(--bms-text-muted);
+    margin-right: 4px;
+    font-size: 20px;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+
+  button mat-spinner { display: inline-flex; margin-right: 6px; }
+  button mat-icon    { margin-right: 6px; font-size: 18px; width: 18px; height: 18px; }
+}
