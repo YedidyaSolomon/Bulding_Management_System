@@ -1,0 +1,43 @@
+<div class="unit-card bms-card">
+  <div class="card-header">
+    <div class="card-title">
+      <div class="unit-avatar">
+        <mat-icon>apartment</mat-icon>
+      </div>
+      <div>
+        <span class="unit-number">{{ unit.unitNumber }}</span>
+        <span class="floor-badge">Floor {{ unit.floorNumber }}</span>
+      </div>
+    </div>
+    <span class="badge" [ngClass]="statusClass(unit.status)">
+      {{ statusLabel(unit.status) }}
+    </span>
+  </div>
+
+  <div class="card-body">
+    <div class="card-row">
+      <span class="card-label">Type</span>
+      <span class="card-value">{{ unit.unitType }}</span>
+    </div>
+    <div class="card-row">
+      <span class="card-label">Area</span>
+      <span class="card-value">{{ unit.areaSqMeters | number:'1.0-1' }} m²</span>
+    </div>
+    <div class="card-row">
+      <span class="card-label">Monthly Rent</span>
+      <span class="card-value rent-value">{{ unit.monthlyRent | etbCurrency }}</span>
+    </div>
+  </div>
+
+  <div class="card-actions">
+    <button mat-icon-button matTooltip="View details" (click)="view.emit(unit)">
+      <mat-icon>visibility</mat-icon>
+    </button>
+    <button *ngIf="canEdit" mat-icon-button matTooltip="Edit unit" (click)="edit.emit(unit)">
+      <mat-icon>edit</mat-icon>
+    </button>
+    <button *ngIf="canDelete" mat-icon-button matTooltip="Delete unit" class="delete-btn" color="warn" (click)="delete.emit(unit)">
+      <mat-icon>delete_outline</mat-icon>
+    </button>
+  </div>
+</div>

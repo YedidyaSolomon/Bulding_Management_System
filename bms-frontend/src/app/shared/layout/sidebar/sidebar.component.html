@@ -1,0 +1,93 @@
+<nav class="sidebar" [class.collapsed]="collapsed" aria-label="Main navigation">
+
+  <!-- ── Brand ─────────────────────────────────────────────────────── -->
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <mat-icon>domain</mat-icon>
+    </div>
+    <span class="brand-name" *ngIf="!collapsed">BMS</span>
+  </div>
+
+  <!-- ── User info ─────────────────────────────────────────────────── -->
+  <div class="sidebar-user" *ngIf="currentUser">
+    <div class="user-avatar" [class.avatar-sm]="collapsed">
+      {{ currentUser.fullName.charAt(0).toUpperCase() }}
+    </div>
+    <ng-container *ngIf="!collapsed">
+      <div class="user-info">
+        <span class="user-name">{{ currentUser.fullName }}</span>
+        <span class="user-role" [ngClass]="'role-' + currentUser.role.toLowerCase()">
+          {{ currentUser.role }}
+        </span>
+        <span class="user-status">
+          <span class="status-dot"></span>
+          Active
+        </span>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- ── Navigation ─────────────────────────────────────────────────── -->
+  <ul class="nav-list" role="menubar">
+
+    <ng-container *ngFor="let item of visibleItems">
+
+      <!-- Optional divider above item -->
+      <li *ngIf="item.divider && !collapsed" class="nav-divider" role="separator"></li>
+      <li *ngIf="item.divider && collapsed"  class="nav-divider-dot" role="separator"></li>
+
+      <li role="none">
+        <a
+          class="nav-item"
+          [class.nav-item--child]="item.child"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+          matRipple
+          [matRippleColor]="'rgba(255,255,255,.08)'"
+          [matTooltip]="collapsed ? item.label + (isReadOnly(item) ? ' (Read Only)' : '') : ''"
+          matTooltipPosition="right"
+          role="menuitem"
+          [attr.aria-label]="item.label + (isReadOnly(item) ? ' - Read Only' : '')">
+
+          <!-- Icon -->
+          <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+
+          <!-- Label + badges (hidden when collapsed) -->
+          <ng-container *ngIf="!collapsed">
+            <span class="nav-label">{{ item.label }}</span>
+
+            <!-- Read-only badge -->
+            <span *ngIf="isReadOnly(item)" class="nav-badge nav-badge--readonly"
+                  matTooltip="Read only access" matTooltipPosition="above">
+              <mat-icon>visibility</mat-icon>
+            </span>
+
+            <!-- Static badge (e.g. "New") -->
+            <span *ngIf="item.badge" class="nav-badge nav-badge--info">
+              {{ item.badge }}
+            </span>
+          </ng-container>
+
+        </a>
+      </li>
+
+    </ng-container>
+  </ul>
+
+  <!-- ── Footer: Logout ────────────────────────────────────────────── -->
+  <div class="sidebar-footer">
+    <button
+      class="nav-item logout-btn"
+      (click)="logout()"
+      matRipple
+      [matRippleColor]="'rgba(239,68,68,.15)'"
+      [matTooltip]="collapsed ? 'Sign out' : ''"
+      matTooltipPosition="right"
+      aria-label="Sign out">
+      <mat-icon class="nav-icon">logout</mat-icon>
+      <span class="nav-label" *ngIf="!collapsed">Sign out</span>
+    </button>
+  </div>
+
+</nav>

@@ -1,0 +1,74 @@
+@mixin auth-form-styles {
+  .auth-header {
+    margin-bottom: 28px;
+
+    h2 {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--bms-text-primary);
+      margin: 0 0 8px;
+      letter-spacing: -0.03em;
+    }
+
+    p {
+      font-size: 14px;
+      color: var(--bms-text-secondary);
+      margin: 0;
+    }
+  }
+
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .full-width {
+    width: 100%;
+  }
+
+  .submit-btn {
+    width: 100%;
+    height: 46px;
+    font-size: 15px;
+    font-weight: 500;
+    background: var(--bms-primary) !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    &:disabled {
+      opacity: 0.7;
+    }
+  }
+
+  .auth-footer {
+    margin-top: 24px;
+    text-align: center;
+
+    p {
+      font-size: 14px;
+      color: var(--bms-text-secondary);
+      margin: 0;
+    }
+
+    .auth-link {
+      color: var(--bms-primary);
+      font-weight: 500;
+      text-decoration: none;
+
+      &:hover { text-decoration: underline; }
+    }
+  }
+
+  // Mat form field prefix icons
+  mat-icon[matPrefix] {
+    color: var(--bms-text-muted);
+    margin-right: 4px;
+    font-size: 20px;
+  }
+}

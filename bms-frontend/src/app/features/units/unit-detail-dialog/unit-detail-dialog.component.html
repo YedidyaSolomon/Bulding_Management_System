@@ -1,0 +1,79 @@
+<div class="dialog-header">
+  <div class="unit-icon">
+    <mat-icon>apartment</mat-icon>
+  </div>
+  <div class="header-text">
+    <h2 mat-dialog-title>Unit {{ data.unit.unitNumber }}</h2>
+    <span class="badge" [ngClass]="statusClass(data.unit.status)">
+      {{ statusLabel(data.unit.status) }}
+    </span>
+  </div>
+</div>
+
+<mat-dialog-content>
+
+  <!-- Unit Information -->
+  <div class="detail-section">
+    <div class="section-title">
+      <mat-icon>info_outline</mat-icon>
+      Unit Information
+    </div>
+    <div class="detail-grid">
+      <div class="detail-item">
+        <span class="detail-label">Unit Number</span>
+        <span class="detail-value">{{ data.unit.unitNumber }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Floor</span>
+        <span class="detail-value">Floor {{ data.unit.floorNumber }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Unit Type</span>
+        <span class="detail-value">{{ data.unit.unitType }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Area</span>
+        <span class="detail-value">{{ data.unit.areaSqMeters | number:'1.0-2' }} m²</span>
+      </div>
+    </div>
+  </div>
+
+  <mat-divider />
+
+  <!-- Financial -->
+  <div class="detail-section">
+    <div class="section-title">
+      <mat-icon>payments</mat-icon>
+      Financial
+    </div>
+    <div class="detail-grid">
+      <div class="detail-item">
+        <span class="detail-label">Monthly Rent</span>
+        <span class="detail-value rent-value">{{ data.unit.monthlyRent | etbCurrency }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Status</span>
+        <span class="badge" [ngClass]="statusClass(data.unit.status)">
+          {{ statusLabel(data.unit.status) }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Description -->
+  <ng-container *ngIf="data.unit.description">
+    <mat-divider />
+    <div class="detail-section">
+      <div class="section-title">
+        <mat-icon>notes</mat-icon>
+        Description
+      </div>
+      <p class="description-text">{{ data.unit.description }}</p>
+    </div>
+  </ng-container>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-raised-button color="primary" (click)="close()">Close</button>
+</mat-dialog-actions>

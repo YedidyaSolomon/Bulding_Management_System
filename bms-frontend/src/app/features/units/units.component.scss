@@ -1,0 +1,180 @@
+// ── Filter bar ────────────────────────────────────────────────────────────────
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+
+  .search-field {
+    flex: 1;
+    min-width: 220px;
+  }
+
+  .filter-field {
+    width: 140px;
+
+    @media (max-width: 600px) {
+      flex: 1;
+      min-width: 130px;
+    }
+  }
+
+  .clear-btn {
+    height: 56px;
+    align-self: flex-start;
+    white-space: nowrap;
+
+    mat-icon {
+      margin-right: 4px;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+// ── Results summary ───────────────────────────────────────────────────────────
+.results-summary {
+  font-size: 13px;
+  color: var(--bms-text-secondary);
+  margin-bottom: 12px;
+}
+
+// ── Grid Layout ───────────────────────────────────────────────────────────────
+.units-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 8px 0 16px 0;
+}
+
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+.skeleton-card {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-radius: 12px;
+  background: var(--bms-card-bg, #fff);
+  border: 1px solid var(--bms-border, #e0e0e0);
+  height: 200px;
+}
+
+.skeleton-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.skeleton-title {
+  height: 24px;
+  width: 120px;
+  border-radius: 4px;
+}
+
+.skeleton-body {
+  height: 14px;
+  border-radius: 4px;
+  width: 100%;
+}
+
+.w-50 {
+  width: 50%;
+}
+
+.skeleton-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: auto;
+  border-top: 1px solid var(--bms-border, #e5e7eb);
+  padding-top: 12px;
+}
+
+.skeleton-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+// ── Empty State ───────────────────────────────────────────────────────────────
+.empty-state-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 48px 24px;
+  background: var(--bms-card-bg, #fff);
+  border-radius: 12px;
+  border: 1px dashed var(--bms-border, #e5e7eb);
+  text-align: center;
+  min-height: 300px;
+}
+
+.empty-state-content {
+  max-width: 400px;
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--bms-text-primary, #111827);
+    margin-top: 16px;
+    margin-bottom: 8px;
+  }
+
+  p {
+    font-size: 14px;
+    color: var(--bms-text-secondary, #4b5563);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+}
+
+.empty-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--bms-primary-light, #e3f2fd);
+  color: var(--bms-primary, #1976d2);
+
+  mat-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+  }
+}
+
+.empty-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+
+  button mat-icon {
+    margin-right: 6px;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+// ── Responsive breakpoints ────────────────────────────────────────────────────
+@media (max-width: 480px) {
+  .filter-bar {
+    .search-field,
+    .filter-field {
+      width: 100%;
+      flex: unset;
+    }
+  }
+}

@@ -1,0 +1,52 @@
+<div class="bms-page fade-in">
+
+  <div class="bms-page-header">
+    <div>
+      <h1>System Settings</h1>
+      <p>Configure application-wide defaults. Changes here will affect all users.</p>
+    </div>
+    <button mat-stroked-button routerLink="/admin">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Admin
+    </button>
+  </div>
+
+  <!-- Placeholder notice -->
+  <div class="placeholder-notice">
+    <mat-icon>construction</mat-icon>
+    <div>
+      <strong>Backend integration pending</strong>
+      <p>These settings are displayed as a UI placeholder. Once the backend settings API is implemented, they will persist.</p>
+    </div>
+  </div>
+
+  <!-- Setting groups -->
+  <div class="settings-groups">
+    <div *ngFor="let group of settingGroups" class="settings-group bms-card">
+
+      <div class="group-header">
+        <mat-icon class="group-icon">{{ group.icon }}</mat-icon>
+        <h3>{{ group.title }}</h3>
+      </div>
+
+      <mat-divider />
+
+      <div class="settings-list">
+        <div *ngFor="let setting of group.settings; let last = last" class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">{{ setting.label }}</span>
+            <span class="setting-desc">{{ setting.description }}</span>
+          </div>
+          <mat-slide-toggle
+            *ngIf="setting.type === 'toggle'"
+            [(ngModel)]="setting.value"
+            color="primary">
+          </mat-slide-toggle>
+          <mat-divider *ngIf="!last" />
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>

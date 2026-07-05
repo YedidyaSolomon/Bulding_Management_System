@@ -1,0 +1,35 @@
+.shell-container {
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+}
+
+.bms-sidenav {
+  width: var(--bms-sidebar-width);
+  background: var(--bms-bg-sidebar) !important;
+  border-right: none !important;
+  transition: width .25s cubic-bezier(.4,0,.2,1);
+  overflow: hidden;
+
+  &.collapsed {
+    width: var(--bms-sidebar-collapsed-w);
+  }
+}
+
+.bms-content {
+  display: flex;
+  flex-direction: column;
+  background: var(--bms-bg);
+  overflow: hidden;
+}
+
+.bms-main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+// Material sidenav container resets
+::ng-deep .mat-drawer-container {
+  background: transparent !important;
+}
