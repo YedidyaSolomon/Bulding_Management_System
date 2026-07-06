@@ -15,22 +15,36 @@ public class TenantRepository : ITenantRepository
 
     public async Task<TenantDto?> GetByIdAsync(int id)
     {
-        var t = await _context.Tenants.FindAsync(id);
+        var t = await _context.Tenants
+            .Include(t => t.User)
+            .FirstOrDefaultAsync(t => t.Id == id);
         return t is null ? null : MapToDto(t);
     }
 
     public async Task<IEnumerable<TenantDto>> GetAllAsync()
     {
         var tenants = await _context.Tenants
+            .Include(t => t.User)
             .OrderBy(t => t.OrganizationName)
             .ToListAsync();
         return tenants.Select(MapToDto);
     }
 
-    public async Task<TenantDto> CreateAsync(CreateTenantDto dto)
+    public async Task<IEnumerable<TenantDto>> GetByUserIdAsync(string userId)
+    {
+        var tenants = await _context.Tenants
+            .Include(t => t.User)
+            .Where(t => t.UserId == userId)
+            .OrderBy(t => t.OrganizationName)
+            .ToListAsync();
+        return tenants.Select(MapToDto);
+    }
+
+    public async Task<TenantDto> CreateAsync(CreateTenantDto dto, string userId)
     {
         var tenant = new Tenant
         {
+            UserId            = userId,
             OrganizationName  = dto.OrganizationName,
             TIN               = dto.TIN,
             Phone             = dto.Phone,
@@ -42,7 +56,9 @@ public class TenantRepository : ITenantRepository
 
         _context.Tenants.Add(tenant);
         await _context.SaveChangesAsync();
-        return MapToDto(tenant);
+
+        // Reload with navigation so the DTO is complete
+        return (await GetByIdAsync(tenant.Id))!;
     }
 
     public async Task UpdateAsync(int id, UpdateTenantDto dto)
@@ -116,6 +132,8 @@ public class TenantRepository : ITenantRepository
     private static TenantDto MapToDto(Tenant t) => new()
     {
         Id                = t.Id,
+        UserId            = t.UserId,
+        UserEmail         = t.User?.Email ?? string.Empty,
         OrganizationName  = t.OrganizationName,
         TIN               = t.TIN,
         Phone             = t.Phone,

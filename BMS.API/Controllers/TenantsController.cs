@@ -1,8 +1,10 @@
 using BMS.API.Wrappers;
 using BMS.Application.DTOs.Tenants;
 using BMS.Application.Interfaces;
+using BMS.Application.Interfaces.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BMS.API.Controllers;
 
@@ -15,12 +17,25 @@ public class TenantsController : ControllerBase
 
     public TenantsController(ITenantService tenantService) => _tenantService = tenantService;
 
-    /// <summary>GET /api/tenants</summary>
+    /// <summary>GET /api/tenants — Admin/Manager: all tenants</summary>
     [HttpGet]
+    [Authorize(Roles = "Admin,Manager")]
     [ProducesResponseType(typeof(ApiResponse<IEnumerable<TenantDto>>), 200)]
     public async Task<IActionResult> GetAll()
     {
         var tenants = await _tenantService.GetAllAsync();
+        return Ok(ApiResponse<IEnumerable<TenantDto>>.Ok(tenants));
+    }
+
+    /// <summary>GET /api/tenants/mine — Viewer: only tenants linked to the calling user</summary>
+    [HttpGet("mine")]
+    [ProducesResponseType(typeof(ApiResponse<IEnumerable<TenantDto>>), 200)]
+    public async Task<IActionResult> GetMine()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                     ?? throw new UnauthorizedAccessException("User ID not found in token.");
+
+        var tenants = await _tenantService.GetByUserIdAsync(userId);
         return Ok(ApiResponse<IEnumerable<TenantDto>>.Ok(tenants));
     }
 
@@ -34,7 +49,10 @@ public class TenantsController : ControllerBase
         return Ok(ApiResponse<TenantDto>.Ok(tenant));
     }
 
-    /// <summary>POST /api/tenants — register a tenant</summary>
+    /// <summary>
+    /// POST /api/tenants — register a new tenant.
+    /// The request body must include <c>UserEmail</c> of an already-registered account.
+    /// </summary>
     [HttpPost]
     [Authorize(Roles = "Admin,Manager")]
     [ProducesResponseType(typeof(ApiResponse<TenantDto>), 201)]
@@ -75,7 +93,6 @@ public class TenantsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), 404)]
     public async Task<IActionResult> AddDocument(int id, [FromBody] CreateLegalDocumentDto dto)
     {
-        // Ensure the route id matches the DTO tenantId
         dto.TenantId = id;
         var doc = await _tenantService.AddDocumentAsync(dto);
         return StatusCode(201, ApiResponse<LegalDocumentDto>.Ok(doc, "Document uploaded successfully."));
@@ -90,4 +107,22 @@ public class TenantsController : ControllerBase
         var docs = await _tenantService.GetDocumentsAsync(id);
         return Ok(ApiResponse<IEnumerable<LegalDocumentDto>>.Ok(docs));
     }
+
+    /// <summary>
+    /// GET /api/tenants/registered-users — Admin/Manager only.
+    /// Returns the email + full name of every active registered user account,
+    /// used by the tenant-creation form to validate and pick a user.
+    /// </summary>
+    [HttpGet("registered-users")]
+    [Authorize(Roles = "Admin,Manager")]
+    [ProducesResponseType(typeof(ApiResponse<IEnumerable<RegisteredUserDto>>), 200)]
+    public async Task<IActionResult> GetRegisteredUsers()
+    {
+        var users = await _tenantService.GetRegisteredUsersAsync();
+        var result = users.Select(u => new RegisteredUserDto(u.Email, u.FullName));
+        return Ok(ApiResponse<IEnumerable<RegisteredUserDto>>.Ok(result));
+    }
 }
+
+/// <summary>Lightweight DTO returned to the frontend for the email-picker.</summary>
+public record RegisteredUserDto(string Email, string FullName);

@@ -1,4 +1,5 @@
 using BMS.API.Wrappers;
+using BMS.Application.Exceptions;
 using System.Net;
 using System.Text.Json;
 
@@ -39,6 +40,7 @@ public class ExceptionHandlingMiddleware
         var (statusCode, message) = exception switch
         {
             UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "Unauthorized access."),
+            ForbiddenAccessException    => (HttpStatusCode.Forbidden, exception.Message),
             KeyNotFoundException        => (HttpStatusCode.NotFound, exception.Message),
             ArgumentException           => (HttpStatusCode.BadRequest, exception.Message),
             InvalidOperationException   => (HttpStatusCode.BadRequest, exception.Message),

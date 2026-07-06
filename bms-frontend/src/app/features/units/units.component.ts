@@ -182,10 +182,13 @@ export class UnitsComponent implements OnInit, OnDestroy {
   // ── Dialogs ──────────────────────────────────────────────────────────────────
 
   openCreate(): void {
+    // Build floor capacity map from current unit list (no extra HTTP call needed)
+    const floorCapacityMap = this.unitService.buildFloorCapacityMap(this.allUnits);
+
     const ref = this.dialog.open(UnitFormDialogComponent, {
       width: '580px',
       maxWidth: '95vw',
-      data: {},
+      data: { floorCapacityMap },
     });
     ref.afterClosed().subscribe(result => {
       if (result) this.loadUnits();
@@ -193,10 +196,13 @@ export class UnitsComponent implements OnInit, OnDestroy {
   }
 
   openEdit(unit: UnitDto): void {
+    // Exclude the unit being edited so its own floor slot isn't double-counted
+    const floorCapacityMap = this.unitService.buildFloorCapacityMap(this.allUnits, unit.id);
+
     const ref = this.dialog.open(UnitFormDialogComponent, {
       width: '580px',
       maxWidth: '95vw',
-      data: { unit },
+      data: { unit, floorCapacityMap },
     });
     ref.afterClosed().subscribe(result => {
       if (result) this.loadUnits();

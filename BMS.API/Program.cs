@@ -1,10 +1,15 @@
 using BMS.API.Extensions;
 using BMS.API.Middleware;
+using BMS.API.Services;
+using BMS.Application.Interfaces;
+using BMS.Infrastructure.BackgroundServices;
 using BMS.Infrastructure.Seeders;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Service Registrations ────────────────────────────────────────────────────
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
@@ -12,6 +17,9 @@ builder.Services.AddSwaggerWithJwt();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddApplicationServices();
 builder.Services.AddJwtAuthentication(builder.Configuration);
+
+// ── Background Services ──────────────────────────────────────────────────────
+builder.Services.AddHostedService<NotificationGeneratorService>();
 
 // CORS — allow Angular dev server during development
 builder.Services.AddCors(options =>

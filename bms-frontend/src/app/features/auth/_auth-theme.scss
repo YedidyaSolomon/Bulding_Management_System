@@ -1,0 +1,255 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// _auth-theme.scss
+// Single source of truth for every auth-page token, keyframe, and mixin.
+// Imported by: auth-layout.component.scss, login.component.scss,
+//              register.component.scss, _auth-shared.scss
+//
+// RULE: @keyframes must be at file root — never inside a mixin — so they
+// emit as plain CSS names with no SCSS namespace prefix.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Design tokens ──────────────────────────────────────────────────────────────
+$auth-indigo:        #3730a3;   // deep indigo (hover state)
+$auth-indigo-mid:    #4f46e5;   // brand indigo (focus, button, accents)
+$auth-violet:        #7c3aed;   // violet (button gradient end)
+$auth-indigo-light:  #818cf8;   // lighter indigo (icon rest state)
+$auth-white:         #ffffff;
+
+// Right-panel background: cool lavender-gray from the indigo palette.
+// Not pure white — reads as one color family with the branding panel.
+$auth-panel-bg:      #F4F3FA;
+
+$auth-form-max-w:    400px;     // max width of the form card
+$auth-panel-width:   500px;     // fixed width of the right panel on desktop
+
+$auth-font:          'Inter', Roboto, 'Helvetica Neue', sans-serif;
+
+$auth-radius-sm:     8px;
+$auth-radius-md:     12px;
+$auth-radius-lg:     16px;
+
+$auth-input-shadow-focus: 0 0 0 3px rgba(79, 70, 229, 0.20);
+$auth-btn-shadow:          0 4px 16px rgba(79, 70, 229, 0.42);
+$auth-btn-shadow-hover:    0 6px 22px rgba(79, 70, 229, 0.58);
+
+// ── Keyframes (root-level — bare CSS names, no SCSS namespace prefix) ──────────
+
+@keyframes auth-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes auth-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes auth-shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-7px); }
+  40%       { transform: translateX(7px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}
+
+@keyframes bg-slow-zoom {
+  from { transform: scale(1.00); }
+  to   { transform: scale(1.06); }
+}
+
+// ── Form mixin — include in every child component (login, register) ────────────
+
+@mixin auth-form-panel {
+
+  // ── Section header ──────────────────────────────────────────────────────────
+  .auth-header {
+    margin-bottom: 32px;
+    animation: auth-fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+    .auth-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: $auth-indigo-mid;
+      margin-bottom: 10px;
+
+      .eyebrow-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: $auth-indigo-mid;
+      }
+    }
+
+    h2 {
+      font-size: 28px;
+      font-weight: 800;
+      // Deep indigo-family — not harsh black, unified with the branding panel.
+      color: #1e1b4b;
+      margin: 0 0 8px;
+      letter-spacing: -0.04em;
+      line-height: 1.15;
+    }
+
+    p {
+      font-size: 14px;
+      color: #5b607a;
+      margin: 0;
+      line-height: 1.65;
+    }
+  }
+
+  // ── Form layout ─────────────────────────────────────────────────────────────
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    animation: auth-fade-up 0.50s cubic-bezier(0.22, 1, 0.36, 1) 0.06s both;
+
+    &.shake {
+      animation: auth-shake 0.40s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+  }
+
+  .full-width { width: 100%; }
+
+  // ── Angular Material outline-field overrides ─────────────────────────────────
+  .mat-mdc-form-field {
+    width: 100%;
+
+    // Rounded outline corners
+    .mdc-notched-outline__leading  {
+      border-radius: $auth-radius-md 0 0 $auth-radius-md !important;
+    }
+    .mdc-notched-outline__trailing {
+      border-radius: 0 $auth-radius-md $auth-radius-md 0 !important;
+    }
+
+    // Resting border — faint indigo tint (same family as the branding panel)
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: rgba(79, 70, 229, 0.20) !important;
+      transition: border-color 0.2s ease;
+    }
+
+    // Focus: full brand border + soft glow ring
+    &.mat-focused {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: $auth-indigo-mid !important;
+        border-width: 1.5px !important;
+      }
+
+      .mat-mdc-text-field-wrapper {
+        box-shadow: $auth-input-shadow-focus;
+        border-radius: $auth-radius-md;
+      }
+    }
+
+    // Floating label on focus
+    &.mat-focused .mdc-floating-label { color: $auth-indigo-mid !important; }
+
+    // Prefix icons: soft indigo-light at rest → full mid on focus
+    mat-icon[matPrefix] {
+      color: $auth-indigo-light;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      margin-right: 6px;
+      flex-shrink: 0;
+      transition: color 0.18s ease;
+    }
+
+    &.mat-focused mat-icon[matPrefix] {
+      color: $auth-indigo-mid;
+    }
+
+    // Suffix (password-toggle) button
+    button[matSuffix] {
+      color: #94a3b8;
+      &:hover { color: $auth-indigo-mid; }
+    }
+
+    .mat-mdc-text-field-wrapper {
+      border-radius: $auth-radius-md !important;
+      transition: box-shadow 0.2s ease;
+    }
+
+    // Input text: indigo-family dark, not harsh black
+    input.mat-mdc-input-element {
+      color: #1e1b4b;
+    }
+  }
+
+  // ── Submit button ────────────────────────────────────────────────────────────
+  .submit-btn {
+    width: 100%;
+    height: 50px;
+    margin-top: 12px;
+    border-radius: $auth-radius-md !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.01em;
+    background: linear-gradient(135deg, $auth-indigo-mid 0%, $auth-violet 100%) !important;
+    color: $auth-white !important;
+    box-shadow: $auth-btn-shadow;
+    transition: box-shadow 0.22s ease, transform 0.18s ease, opacity 0.18s ease !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    animation: auth-fade-up 0.50s cubic-bezier(0.22, 1, 0.36, 1) 0.10s both;
+
+    &:hover:not(:disabled) {
+      box-shadow: $auth-btn-shadow-hover;
+      transform: translateY(-1px);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: $auth-btn-shadow;
+    }
+
+    &:disabled {
+      opacity: 0.62;
+      transform: none;
+    }
+
+    mat-spinner {
+      --mdc-circular-progress-active-indicator-color: #{$auth-white};
+    }
+  }
+
+  // ── Footer switch-page link ──────────────────────────────────────────────────
+  .auth-footer {
+    margin-top: 24px;
+    text-align: center;
+    animation: auth-fade-up 0.50s cubic-bezier(0.22, 1, 0.36, 1) 0.14s both;
+
+    p {
+      font-size: 14px;
+      color: #5b607a;
+      margin: 0;
+    }
+
+    .auth-link {
+      color: $auth-indigo-mid;
+      font-weight: 600;
+      text-decoration: none;
+      transition: color 0.15s ease;
+
+      &:hover          { color: $auth-indigo; text-decoration: underline; }
+      &:focus-visible  {
+        outline: 2px solid $auth-indigo-mid;
+        outline-offset: 2px;
+        border-radius: 3px;
+      }
+    }
+  }
+}

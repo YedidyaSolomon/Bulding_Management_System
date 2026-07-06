@@ -1,120 +1,207 @@
 .unit-card {
   padding: 16px;
-  background: var(--bms-card-bg, #fff);
-  border: 1px solid var(--bms-border, #e0e0e0);
+  background: var(--bms-bg-card, #fff);
+  border: 1px solid var(--bms-border, #e2e8f0);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
-  transition: all 0.2s ease;
+  // Consistent shadow + lift on hover — same pattern as Quick Access cards
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.06);
+    border-color: var(--bms-primary, #2563eb);
+  }
+}
+
+// ── Card header ───────────────────────────────────────────────────────────────
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  gap: 10px;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+// ── Unit type icon bubble ─────────────────────────────────────────────────────
+.unit-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 10px;
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: #fff;
   }
 
-  .card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-    gap: 10px;
+  // Shop → storefront teal/cyan
+  &--shop {
+    background: linear-gradient(135deg, #2DD4BF, #0D9488);
+  }
 
-    .card-title {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+  // Office → briefcase indigo/blue
+  &--office {
+    background: linear-gradient(135deg, #818CF8, #4F46E5);
+  }
 
-      .unit-avatar {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        border-radius: 8px;
-        background: var(--bms-primary-light, #e3f2fd);
-        flex-shrink: 0;
+  // Fallback for any future types
+  &:not(&--shop):not(&--office) {
+    background: linear-gradient(135deg, #60A5FA, #2563EB);
+  }
+}
 
-        mat-icon {
-          font-size: 20px;
-          width: 20px;
-          height: 20px;
-          color: var(--bms-primary, #1976d2);
-        }
-      }
+.unit-number {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--bms-text-primary, #1e293b);
+  letter-spacing: -0.01em;
+}
 
-      .unit-number {
-        display: block;
-        font-size: 18px;
-        font-weight: 600;
-        color: var(--bms-text-primary, #111827);
-      }
+.floor-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 3px;
+  padding: 1px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--bms-bg, #f1f0f9);
+  border: 1px solid var(--bms-border, #e2e8f0);
+  color: var(--bms-text-secondary, #64748b);
+  white-space: nowrap;
+}
 
-      .floor-badge {
-        display: inline-flex;
-        align-items: center;
-        margin-top: 4px;
-        padding: 2px 8px;
-        border-radius: 6px;
-        font-size: 12px;
-        font-weight: 500;
-        background: var(--bms-bg, #f9fafb);
-        border: 1px solid var(--bms-border, #e5e7eb);
-        color: var(--bms-text-secondary, #4b5563);
-        white-space: nowrap;
-      }
+// ── Status pill — overrides for Reserved (purple) ─────────────────────────────
+// Available = badge-success (green), Occupied = badge-info (blue),
+// UnderMaintenance = badge-warning (amber) — all defined in global styles.scss.
+// Reserved gets its own distinct purple pill here at component scope.
+:host ::ng-deep .badge-reserved,
+.badge-reserved {
+  background: rgba(124, 58, 237, 0.1);
+  color: #6d28d9;
+}
+
+// ── Card body ─────────────────────────────────────────────────────────────────
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: auto; // push footer to bottom when cards have different heights
+}
+
+.card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.card-label {
+  color: var(--bms-text-muted, #94a3b8);
+  font-weight: 500;
+}
+
+.card-value {
+  color: var(--bms-text-primary, #1e293b);
+  font-weight: 500;
+}
+
+.rent-value {
+  font-weight: 700;
+  color: var(--bms-primary, #2563eb);
+  font-size: 14px;
+}
+
+// ── Card footer / actions ─────────────────────────────────────────────────────
+.card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  // Tight gap: 8px top padding instead of 16px — removes the dead space
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--bms-border, #e2e8f0);
+  gap: 4px;
+}
+
+// "View details" — text button, acts as a subtle link
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 6px 0 4px !important;
+  height: 32px;
+  min-width: 0 !important;
+  border-radius: 6px !important;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+
+  mat-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+    // Icon comes before text in DOM so it reads: [>] View details
+    order: -1;
+  }
+
+  &--view {
+    color: var(--bms-primary, #2563eb);
+
+    &:hover {
+      background: rgba(37, 99, 235, 0.07) !important;
     }
   }
+}
 
-  .card-body {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: auto; /* Push actions to the bottom if cards have different heights */
+// Right-side icon buttons (Edit + Delete)
+.action-btn-right {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.action-icon-btn {
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  color: var(--bms-text-secondary, #64748b);
+
+  mat-icon {
+    font-size: 17px;
+    width: 17px;
+    height: 17px;
   }
 
-  .card-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 14px;
+  &:hover {
+    background: var(--bms-bg, #f1f0f9) !important;
+    color: var(--bms-text-primary, #1e293b);
   }
 
-  .card-label {
-    color: var(--bms-text-muted, #6b7280);
-    font-weight: 500;
-  }
+  &--delete {
+    color: #EF4444;
 
-  .card-value {
-    color: var(--bms-text-primary, #111827);
-    font-weight: 500;
-  }
-
-  .rent-value {
-    font-weight: 700;
-    color: var(--bms-primary, #1976d2);
-    font-size: 16px;
-  }
-
-  .card-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 4px;
-    margin-top: 16px;
-    padding-top: 12px;
-    border-top: 1px solid var(--bms-border, #e5e7eb);
-    
-    button {
-      color: var(--bms-text-secondary, #4b5563);
-      &:hover {
-        background: var(--bms-bg, #f9fafb);
-      }
-    }
-    
-    .delete-btn {
-      color: var(--bms-warn, #ef4444);
-      &:hover { 
-        background: rgba(239,68,68,.08); 
-      }
+    &:hover {
+      background: rgba(239, 68, 68, 0.08) !important;
+      color: #DC2626;
     }
   }
 }

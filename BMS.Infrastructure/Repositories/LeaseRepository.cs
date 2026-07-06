@@ -127,6 +127,32 @@ public class LeaseRepository : ILeaseRepository
     public Task<bool> ExistsAsync(int id) =>
         _context.Leases.AnyAsync(l => l.Id == id);
 
+    public async Task<IEnumerable<ExpiringLeaseDto>> GetExpiringAsync(int withinDays)
+    {
+        var now      = DateTime.UtcNow.Date;
+        var cutoff   = now.AddDays(withinDays);
+
+        var leases = await _context.Leases
+            .Include(l => l.Unit)
+            .Include(l => l.Tenant)
+            .Where(l =>
+                l.Status == LeaseStatus.Active &&
+                l.EndDate.Date >= now           &&
+                l.EndDate.Date <= cutoff)
+            .OrderBy(l => l.EndDate)
+            .Select(l => new ExpiringLeaseDto
+            {
+                Id         = l.Id,
+                TenantName = l.Tenant.OrganizationName,
+                UnitNumber = l.Unit.UnitNumber,
+                UserId     = l.Tenant.UserId,
+                EndDate    = l.EndDate,
+            })
+            .ToListAsync();
+
+        return leases;
+    }
+
     // ── Mapping ─────────────────────────────────────────────────────────────
 
     private static LeaseDto MapToDto(Lease l) => new()

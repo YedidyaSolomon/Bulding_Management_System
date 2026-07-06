@@ -1,0 +1,52 @@
+<div class="tenant-card bms-card" (click)="view.emit(tenant)">
+
+  <!-- Card Header -->
+  <div class="card-header">
+    <div class="tenant-avatar">
+      {{ initials }}
+    </div>
+    <div class="card-title-wrap">
+      <h3 class="card-title" [title]="tenant.organizationName">{{ tenant.organizationName }}</h3>
+      <span class="business-type">{{ tenant.businessType }}</span>
+    </div>
+    <span class="badge status-badge" [ngClass]="statusClass(tenant.isActive)">
+      {{ statusLabel(tenant.isActive) }}
+    </span>
+  </div>
+
+  <!-- Card Body -->
+  <div class="card-body">
+    <div class="info-row">
+      <mat-icon>person</mat-icon>
+      <span>{{ tenant.contactPersonName }}</span>
+    </div>
+    <div class="info-row">
+      <mat-icon>email</mat-icon>
+      <span>{{ tenant.contactEmail }}</span>
+    </div>
+    <div class="info-row">
+      <mat-icon>phone</mat-icon>
+      <span>{{ tenant.phone }}</span>
+    </div>
+    <div class="info-row">
+      <mat-icon>receipt</mat-icon>
+      <span class="tin-value">TIN: {{ tenant.tin }}</span>
+    </div>
+  </div>
+
+  <!-- Card Actions -->
+  <div class="card-actions" (click)="$event.stopPropagation()">
+    <button mat-icon-button matTooltip="View details" (click)="view.emit(tenant)">
+      <mat-icon>visibility</mat-icon>
+    </button>
+    <button mat-icon-button matTooltip="Edit tenant" *ngIf="canEdit"
+            (click)="edit.emit(tenant)">
+      <mat-icon>edit</mat-icon>
+    </button>
+    <button mat-icon-button matTooltip="Deactivate" *ngIf="canDelete"
+            class="delete-btn" (click)="delete.emit(tenant)">
+      <mat-icon>person_off</mat-icon>
+    </button>
+  </div>
+
+</div>

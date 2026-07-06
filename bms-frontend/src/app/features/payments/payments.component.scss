@@ -1,0 +1,515 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Primary CTA — Record Payment button
+// ─────────────────────────────────────────────────────────────────────────────
+.record-btn {
+  height: 42px !important;
+  padding: 0 20px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  border-radius: 10px !important;
+  box-shadow:
+    0 4px 14px rgba(37, 99, 235, 0.35),
+    0 1px 3px  rgba(37, 99, 235, 0.2) !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 6px 20px rgba(37, 99, 235, 0.45),
+      0 2px 6px  rgba(37, 99, 235, 0.25) !important;
+  }
+
+  mat-icon {
+    font-size: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+    margin-right: 6px !important;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Stats strip layout
+// ─────────────────────────────────────────────────────────────────────────────
+.stats-strip {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+// ─── HERO card — Collected amount ────────────────────────────────────────────
+.stat-card--hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  border: 1px solid #86efac;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.15);
+  // Takes more width than chips on wide viewports
+  flex: 2;
+  min-width: 220px;
+
+  .stat-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 10px;
+    background: #22c55e;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.35);
+
+    mat-icon {
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+      color: #fff;
+    }
+  }
+
+  .stat-card-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #15803d;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-card-value {
+    display: block;
+    font-size: 26px;
+    font-weight: 800;
+    color: #14532d;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// ─── Secondary chips ─────────────────────────────────────────────────────────
+.stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--bms-bg-card, #fff);
+  border: 1px solid var(--bms-border, #e2e8f0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  flex: 1;
+  min-width: 110px;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: var(--bms-text-muted);
+    flex-shrink: 0;
+  }
+
+  .chip-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  .chip-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--bms-text-primary);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .chip-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--bms-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+
+  // Today variant — blue
+  &--today {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    mat-icon { color: #3b82f6; }
+    .chip-value { color: #1e40af; }
+  }
+
+  // Cash variant — amber
+  &--cash {
+    background: #fff7ed;
+    border-color: #fed7aa;
+    mat-icon { color: #f97316; }
+    .chip-value { color: #9a3412; }
+  }
+
+  // Transfer variant — purple
+  &--transfer {
+    background: #fdf4ff;
+    border-color: #e9d5ff;
+    mat-icon { color: #a855f7; }
+    .chip-value { color: #6b21a8; }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Skeleton stats (loading)
+// ─────────────────────────────────────────────────────────────────────────────
+.skeleton-stats {
+  pointer-events: none;
+}
+
+.stat-skeleton {
+  height: 76px;
+  border-radius: 12px;
+  flex: 1;
+  min-width: 110px;
+
+  &--hero {
+    flex: 2;
+    min-width: 220px;
+    height: 76px;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Filter bar
+// ─────────────────────────────────────────────────────────────────────────────
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+
+  .search-field {
+    flex: 1;
+    min-width: 220px;
+  }
+
+  .filter-field {
+    width: 170px;
+
+    @media (max-width: 600px) {
+      flex: 1;
+      min-width: 130px;
+    }
+  }
+
+  .clear-btn {
+    height: 48px;
+    white-space: nowrap;
+    flex-shrink: 0;
+
+    mat-icon {
+      margin-right: 4px;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Results summary
+// ─────────────────────────────────────────────────────────────────────────────
+.results-summary {
+  margin-bottom: 12px;
+}
+
+.results-count {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  color: var(--bms-text-secondary);
+  background: var(--bms-bg, #f1f0f9);
+  border: 1px solid var(--bms-border);
+  border-radius: 20px;
+  padding: 3px 10px;
+
+  strong {
+    font-weight: 700;
+    color: var(--bms-text-primary);
+    margin-right: 3px;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Table skeleton
+// ─────────────────────────────────────────────────────────────────────────────
+.skeleton-table {
+  padding: 0;
+  overflow: hidden;
+}
+
+.skel-header {
+  display: flex;
+  gap: 24px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--bms-border);
+  background: var(--bms-bg, #f1f0f9);
+}
+
+.skel-row {
+  display: flex;
+  gap: 24px;
+  padding: 14px 20px;
+  align-items: center;
+  border-bottom: 1px solid var(--bms-border);
+
+  &:nth-child(even) { background: rgba(0, 0, 0, 0.015); }
+  &:last-child { border-bottom: none; }
+}
+
+.skel-cell {
+  border-radius: 6px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Table card + rows
+// ─────────────────────────────────────────────────────────────────────────────
+.table-card {
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.payments-table {
+  width: 100%;
+}
+
+// Zebra striping — very subtle, every even data row
+::ng-deep .payments-table .mat-mdc-row:nth-child(even) {
+  background: rgba(0, 0, 0, 0.018);
+}
+
+// Row hover — overrides zebra
+.clickable-row {
+  cursor: pointer;
+  transition: background 0.1s ease;
+
+  &:hover {
+    background: rgba(37, 99, 235, 0.04) !important;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Date cell
+// ─────────────────────────────────────────────────────────────────────────────
+.date-cell {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bms-text-primary);
+  white-space: nowrap;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Invoice number — softened pill
+// ─────────────────────────────────────────────────────────────────────────────
+.invoice-pill {
+  font-family: 'Courier New', monospace;
+  font-size: 11.5px;
+  font-weight: 500;                      // was 600 — lighter
+  color: var(--bms-text-secondary);
+  letter-spacing: 0.02em;
+  background: rgba(37, 99, 235, 0.06);  // lighter blue tint instead of grey
+  border: 1px solid rgba(37, 99, 235, 0.15);  // lighter border
+  padding: 2px 8px;
+  border-radius: 20px;                   // pill not box
+  white-space: nowrap;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Method cell — color-coded per method
+// ─────────────────────────────────────────────────────────────────────────────
+.method-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 20px;
+  padding: 3px 10px 3px 4px;
+  white-space: nowrap;
+
+  // Icon bubble
+  .method-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  // Cash — amber
+  &.method--cash {
+    background: rgba(249, 115, 22, 0.08);
+    color: #9a3412;
+
+    .method-icon-wrap { background: #f97316; mat-icon { color: #fff; } }
+  }
+
+  // Bank Transfer — purple
+  &.method--transfer {
+    background: rgba(168, 85, 247, 0.08);
+    color: #6b21a8;
+
+    .method-icon-wrap { background: #a855f7; mat-icon { color: #fff; } }
+  }
+
+  // Cheque — blue
+  &.method--cheque {
+    background: rgba(37, 99, 235, 0.08);
+    color: #1e40af;
+
+    .method-icon-wrap { background: #3b82f6; mat-icon { color: #fff; } }
+  }
+
+  // Mobile Money — teal
+  &.method--mobile {
+    background: rgba(13, 148, 136, 0.08);
+    color: #134e4a;
+
+    .method-icon-wrap { background: #0d9488; mat-icon { color: #fff; } }
+  }
+
+  // Fallback
+  &.method--default {
+    background: var(--bms-bg);
+    color: var(--bms-text-secondary);
+
+    .method-icon-wrap {
+      background: var(--bms-text-muted);
+      mat-icon { color: #fff; }
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Amount cell
+// ─────────────────────────────────────────────────────────────────────────────
+.amount-cell {
+  font-size: 14px;
+  font-weight: 700;
+  color: #059669;
+  white-space: nowrap;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Reference cell
+// ─────────────────────────────────────────────────────────────────────────────
+.ref-cell {
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+  color: var(--bms-text-muted);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Actions column — ghost "View" button
+// ─────────────────────────────────────────────────────────────────────────────
+.actions-header { width: 80px; }
+
+.actions-cell {
+  text-align: right;
+  padding-right: 12px;
+}
+
+.view-btn {
+  // mat-button override
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 2px;
+  padding: 0 8px 0 6px !important;
+  height: 30px;
+  min-width: 0 !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--bms-text-secondary) !important;
+  transition: background 0.12s ease, color 0.12s ease !important;
+
+  mat-icon {
+    font-size: 15px !important;
+    width: 15px !important;
+    height: 15px !important;
+    order: -1;           // icon left, text right
+  }
+
+  &:hover {
+    background: rgba(37, 99, 235, 0.07) !important;
+    color: var(--bms-primary) !important;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Empty state
+// ─────────────────────────────────────────────────────────────────────────────
+.no-data-cell { padding: 0 !important; }
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 24px;
+  color: var(--bms-text-muted);
+  text-align: center;
+
+  mat-icon {
+    font-size: 44px;
+    width: 44px;
+    height: 44px;
+    margin-bottom: 14px;
+    opacity: 0.35;
+  }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--bms-text-secondary);
+    margin: 0 0 6px;
+  }
+
+  p {
+    font-size: 13px;
+    color: var(--bms-text-muted);
+    margin: 0;
+    max-width: 280px;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Responsive
+// ─────────────────────────────────────────────────────────────────────────────
+@media (max-width: 680px) {
+  .mat-column-referenceNumber { display: none; }
+}
+
+@media (max-width: 480px) {
+  .filter-bar .search-field,
+  .filter-bar .filter-field { width: 100%; flex: unset; }
+
+  .mat-column-referenceNumber,
+  .mat-column-paymentMethod { display: none; }
+}

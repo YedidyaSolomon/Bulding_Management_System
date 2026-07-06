@@ -1,35 +1,47 @@
-<!-- Header -->
+<!-- ── Header ─────────────────────────────────────────────────────────────── -->
 <div class="auth-header">
-  <h2>Create an account</h2>
+  <div class="auth-eyebrow">
+    <span class="eyebrow-dot"></span>
+    Get started
+  </div>
+  <h2>Create your account</h2>
   <p>Your account will have Viewer access by default.</p>
 </div>
 
-<!-- Form -->
-<form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="auth-form">
+<!-- ── Form ───────────────────────────────────────────────────────────────── -->
+<form
+  [formGroup]="form"
+  (ngSubmit)="onSubmit()"
+  novalidate
+  class="auth-form"
+  [class.shake]="formShake"
+  aria-label="Create account form">
 
   <!-- Full name -->
   <mat-form-field appearance="outline" class="full-width">
     <mat-label>Full name</mat-label>
+    <mat-icon matPrefix aria-hidden="true">person_outline</mat-icon>
     <input
       matInput
       formControlName="fullName"
-      placeholder="John Smith"
-      autocomplete="name">
-    <mat-icon matPrefix>person_outline</mat-icon>
+      autocomplete="name"
+      placeholder="Jane Smith"
+      [attr.aria-invalid]="fullName.invalid && fullName.touched">
     <mat-error *ngIf="fullName.hasError('required')">Full name is required.</mat-error>
-    <mat-error *ngIf="fullName.hasError('minlength')">Name must be at least 2 characters.</mat-error>
+    <mat-error *ngIf="fullName.hasError('minlength')">At least 2 characters required.</mat-error>
   </mat-form-field>
 
   <!-- Email -->
   <mat-form-field appearance="outline" class="full-width">
     <mat-label>Email address</mat-label>
+    <mat-icon matPrefix aria-hidden="true">mail_outline</mat-icon>
     <input
       matInput
       type="email"
       formControlName="email"
+      autocomplete="email"
       placeholder="you@example.com"
-      autocomplete="email">
-    <mat-icon matPrefix>mail_outline</mat-icon>
+      [attr.aria-invalid]="email.invalid && email.touched">
     <mat-error *ngIf="email.hasError('required')">Email is required.</mat-error>
     <mat-error *ngIf="email.hasError('email')">Enter a valid email address.</mat-error>
   </mat-form-field>
@@ -37,34 +49,48 @@
   <!-- Password -->
   <mat-form-field appearance="outline" class="full-width">
     <mat-label>Password</mat-label>
+    <mat-icon matPrefix aria-hidden="true">lock_outline</mat-icon>
     <input
       matInput
       [type]="hidePassword ? 'password' : 'text'"
       formControlName="password"
-      autocomplete="new-password">
-    <mat-icon matPrefix>lock_outline</mat-icon>
-    <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
-      <mat-icon>{{ hidePassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+      autocomplete="new-password"
+      [attr.aria-invalid]="password.invalid && password.touched">
+    <button
+      mat-icon-button matSuffix
+      type="button"
+      (click)="hidePassword = !hidePassword"
+      [attr.aria-label]="hidePassword ? 'Show password' : 'Hide password'">
+      <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
     </button>
-    <mat-hint>Min 8 chars, upper, lower, digit &amp; special character.</mat-hint>
+    <mat-hint>Min 8 chars · upper · lower · digit · special character</mat-hint>
     <mat-error *ngIf="password.hasError('required')">Password is required.</mat-error>
-    <mat-error *ngIf="password.hasError('minlength')">Password must be at least 8 characters.</mat-error>
-    <mat-error *ngIf="password.hasError('pattern')">Password must include uppercase, lowercase, digit &amp; special character.</mat-error>
+    <mat-error *ngIf="password.hasError('minlength')">At least 8 characters required.</mat-error>
+    <mat-error *ngIf="password.hasError('pattern')">
+      Must include uppercase, lowercase, digit &amp; special character.
+    </mat-error>
   </mat-form-field>
 
   <!-- Confirm password -->
   <mat-form-field appearance="outline" class="full-width">
     <mat-label>Confirm password</mat-label>
+    <mat-icon matPrefix aria-hidden="true">lock_outline</mat-icon>
     <input
       matInput
       [type]="hideConfirm ? 'password' : 'text'"
       formControlName="confirmPassword"
-      autocomplete="new-password">
-    <mat-icon matPrefix>lock_outline</mat-icon>
-    <button mat-icon-button matSuffix type="button" (click)="hideConfirm = !hideConfirm">
-      <mat-icon>{{ hideConfirm ? 'visibility' : 'visibility_off' }}</mat-icon>
+      autocomplete="new-password"
+      [attr.aria-invalid]="confirmPassword.invalid && confirmPassword.touched">
+    <button
+      mat-icon-button matSuffix
+      type="button"
+      (click)="hideConfirm = !hideConfirm"
+      [attr.aria-label]="hideConfirm ? 'Show confirm password' : 'Hide confirm password'">
+      <mat-icon>{{ hideConfirm ? 'visibility_off' : 'visibility' }}</mat-icon>
     </button>
-    <mat-error *ngIf="confirmPassword.hasError('required')">Please confirm your password.</mat-error>
+    <mat-error *ngIf="confirmPassword.hasError('required')">
+      Please confirm your password.
+    </mat-error>
     <mat-error *ngIf="form.hasError('passwordMismatch') && confirmPassword.touched">
       Passwords do not match.
     </mat-error>
@@ -73,19 +99,21 @@
   <!-- Submit -->
   <button
     mat-raised-button
-    color="primary"
     type="submit"
     class="submit-btn"
-    [disabled]="loading">
-    <mat-spinner diameter="20" *ngIf="loading" />
-    <span *ngIf="!loading">Create account</span>
+    [disabled]="loading"
+    aria-label="Create account">
+    <mat-spinner diameter="20" *ngIf="loading" aria-hidden="true"></mat-spinner>
+    <mat-icon *ngIf="!loading" aria-hidden="true">person_add</mat-icon>
+    <span>{{ loading ? 'Creating account…' : 'Create account' }}</span>
   </button>
 
 </form>
 
-<!-- Login link -->
+<!-- ── Footer ─────────────────────────────────────────────────────────────── -->
 <div class="auth-footer">
-  <p>Already have an account?
+  <p>
+    Already have an account?
     <a routerLink="/auth/login" class="auth-link">Sign in</a>
   </p>
 </div>

@@ -29,6 +29,15 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           router.navigate(['/forbidden']);
           break;
 
+        case 400:
+          // 400 errors carry validation messages — let the calling component handle them
+          // via its own error handler. Don't show a global snackbar here.
+          break;
+
+        case 404:
+          // 404 errors are also handled locally in dialogs — skip global snackbar.
+          break;
+
         case 500:
           snackBar.open(
             error.error?.message ?? 'An unexpected server error occurred. Please try again.',

@@ -1,9 +1,10 @@
+// ── Toolbar shell ─────────────────────────────────────────────────────────────
 .bms-toolbar {
   height: var(--bms-toolbar-height);
   background: var(--bms-bg-toolbar) !important;
   border-bottom: 1px solid var(--bms-border);
-  box-shadow: var(--bms-shadow-sm);
-  padding: 0 8px 0 8px;
+  box-shadow: 0 1px 0 0 var(--bms-border);
+  padding: 0 16px;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -12,143 +13,215 @@
   gap: 4px;
 }
 
+// ── Menu toggle ───────────────────────────────────────────────────────────────
 .menu-toggle {
   color: var(--bms-text-secondary);
-  margin-right: 8px;
+  margin-right: 4px;
+  flex-shrink: 0;
+  border-radius: 8px;
+
+  &:hover { color: var(--bms-text-primary); }
 }
 
+// ── App name ──────────────────────────────────────────────────────────────────
 .toolbar-title {
   .app-name {
     font-size: 15px;
     font-weight: 600;
     color: var(--bms-text-primary);
     letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
-.toolbar-spacer {
-  flex: 1;
+.toolbar-spacer { flex: 1; }
+
+// ── Right-side action group ───────────────────────────────────────────────────
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
+// ── Bell button ───────────────────────────────────────────────────────────────
 .toolbar-action {
   color: var(--bms-text-secondary);
-  margin-right: 4px;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  flex-shrink: 0;
+
+  &:hover { color: var(--bms-text-primary); }
 }
 
-// ── Profile button ────────────────────────────────────────────────────────────
+// ── Profile trigger ───────────────────────────────────────────────────────────
+// mat-button wraps all children in .mdc-button__label — fighting that with
+// display:flex on the button itself is unreliable across Material versions.
+// Solution: let the button be whatever Material wants, and put ALL visual
+// flex layout on an inner .profile-btn-inner wrapper div.
+
 .profile-btn {
+  padding: 0 !important;
+  min-width: 0 !important;
+  border-radius: 10px !important;
+  height: 40px;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  flex-shrink: 0;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--bms-bg) !important;
+    border-color: var(--bms-border) !important;
+  }
+}
+
+// This div is the real flex container — sits inside mat-button's label span
+.profile-btn-inner {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4px 8px;
-  border-radius: 8px;
-  height: 44px;
-  background: transparent;
-  border: 1px solid var(--bms-border);
-  cursor: pointer;
-  transition: var(--bms-transition);
-
-  &:hover {
-    background: var(--bms-bg);
-  }
-
-  .profile-avatar {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background: var(--bms-primary);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 600;
-    flex-shrink: 0;
-  }
-
-  .profile-info {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    line-height: 1.2;
-    gap: 3px;
-
-    @media (max-width: 600px) { display: none; }
-  }
-
-  .profile-name {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--bms-text-primary);
-  }
-
-  .profile-role-badge {
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 1px 6px;
-    border-radius: 8px;
-  }
-  .role-admin   { background: rgba(124,58,237,.12); color: #6d28d9; }
-  .role-manager { background: rgba(16,185,129,.12); color: #065f46; }
-  .role-viewer  { background: rgba(37,99,235,.1);   color: #1e40af; }
-
-  .profile-chevron {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
-    color: var(--bms-text-secondary);
-
-    @media (max-width: 600px) { display: none; }
-  }
+  padding: 0 10px 0 6px;
+  height: 40px;
+  max-width: 240px;
 }
 
-// ── Profile dropdown ──────────────────────────────────────────────────────────
+// ── Avatar circle ─────────────────────────────────────────────────────────────
+.profile-avatar {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;      // flex-shrink:0 equivalent for non-flex contexts
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.18);
+  // Prevent the circle from being squeezed by adjacent elements
+  aspect-ratio: 1;
+}
+
+// ── Name + badge column ───────────────────────────────────────────────────────
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;          // allow truncation
+  gap: 3px;
+  line-height: 1;
+
+  @media (max-width: 640px) { display: none; }
+}
+
+.profile-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bms-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 130px;
+}
+
+// ── Role pill ─────────────────────────────────────────────────────────────────
+.profile-role-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 1px 7px;
+  border-radius: 20px;
+  white-space: nowrap;
+  line-height: 16px;
+}
+
+// ── Chevron ───────────────────────────────────────────────────────────────────
+.profile-chevron {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  color: var(--bms-text-muted);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+
+  @media (max-width: 640px) { display: none !important; }
+}
+
+.profile-btn[aria-expanded="true"] .profile-chevron {
+  transform: rotate(180deg);
+}
+
+// ── Profile dropdown panel ────────────────────────────────────────────────────
 ::ng-deep .profile-menu .mat-mdc-menu-panel {
-  min-width: 220px !important;
+  min-width: 230px !important;
+  border-radius: 12px !important;
+  box-shadow:
+    0 8px 30px rgba(15, 23, 42, 0.12),
+    0 2px 8px  rgba(15, 23, 42, 0.06) !important;
+  border: 1px solid var(--bms-border) !important;
+  overflow: hidden;
 }
 
 .menu-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px;
+  padding: 16px 16px 14px;
 
   .menu-avatar {
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
     border-radius: 50%;
-    background: var(--bms-primary);
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 15px;
     font-weight: 700;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.18);
     flex-shrink: 0;
-    box-shadow: 0 0 0 3px rgba(37,99,235,.2);
   }
 
   .menu-user-info {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    min-width: 0;
   }
 
   .menu-name {
     font-size: 14px;
     font-weight: 600;
     color: var(--bms-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .menu-role-badge {
+    display: inline-flex;
+    align-items: center;
     font-size: 10px;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 2px 7px;
-    border-radius: 10px;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border-radius: 20px;
     width: fit-content;
   }
 
@@ -158,7 +231,6 @@
     gap: 5px;
     font-size: 11px;
     color: var(--bms-text-secondary);
-    margin-top: 1px;
   }
 
   .menu-status-dot {
@@ -167,11 +239,17 @@
     border-radius: 50%;
     background: #10B981;
     flex-shrink: 0;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
   }
 }
 
+// ── Logout item ───────────────────────────────────────────────────────────────
 .logout-item {
   color: #EF4444 !important;
-
   mat-icon { color: #EF4444 !important; }
 }
+
+// Role pill colours also needed inside the menu header
+.role-admin   { background: rgba(124, 58, 237, 0.12); color: #6d28d9; }
+.role-manager { background: rgba(16, 185, 129, 0.12); color: #065f46; }
+.role-viewer  { background: rgba(37,  99, 235, 0.10); color: #1e40af; }

@@ -1,0 +1,167 @@
+.invoice-card {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
+  }
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 16px 10px;
+}
+
+.invoice-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #ede9fe;
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+    color: #7c3aed;
+  }
+}
+
+.card-title-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--bms-text-primary);
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.02em;
+}
+
+.sub-line {
+  font-size: 12px;
+  color: var(--bms-text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-badge { flex-shrink: 0; align-self: flex-start; margin-top: 2px; }
+
+// ── Body ──────────────────────────────────────────────────────────────────────
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 16px 12px;
+  flex: 1;
+}
+
+.meta-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--bms-text-secondary);
+  font-weight: 500;
+}
+
+.meta-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  color: var(--bms-text-muted);
+}
+
+// Financial row
+.financial-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bms-surface, #f8fafc);
+  border-radius: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--bms-border, #e5e7eb);
+}
+
+.financial-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+}
+
+.fin-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--bms-text-muted);
+}
+
+.fin-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--bms-primary);
+
+  &.due-overdue { color: #dc2626; }
+  &.due-soon    { color: #d97706; }
+  &.due-ok      { color: var(--bms-primary); }
+}
+
+.fin-divider {
+  width: 1px;
+  height: 32px;
+  background: var(--bms-border, #e5e7eb);
+  flex-shrink: 0;
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+.card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  padding: 8px 12px 10px;
+  border-top: 1px solid var(--bms-border, #e5e7eb);
+  margin-top: auto;
+
+  button {
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: var(--bms-text-muted);
+    }
+
+    &:hover mat-icon       { color: var(--bms-primary); }
+    &.pay-btn:hover mat-icon    { color: #059669; }
+    &.cancel-btn:hover mat-icon { color: #dc2626; }
+  }
+}

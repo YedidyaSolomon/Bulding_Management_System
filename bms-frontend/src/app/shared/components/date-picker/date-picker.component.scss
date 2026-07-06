@@ -1,0 +1,127 @@
+// The field fills whatever grid cell it sits in
+:host { display: block; }
+
+.dp-field {
+  width: 100%;
+}
+
+// Prefix icon colour — matches other form fields in the app
+.dp-prefix-icon {
+  color: var(--bms-text-muted);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  margin-right: 4px;
+}
+
+// Toggle icon inherits primary colour when active
+::ng-deep .mat-mdc-icon-button.mat-datepicker-toggle-active {
+  color: var(--bms-primary) !important;
+}
+
+// Small icon inside error messages
+.dp-err-icon {
+  font-size: 14px !important;
+  width: 14px !important;
+  height: 14px !important;
+  vertical-align: middle;
+  margin-right: 3px;
+  margin-top: -2px;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Calendar popup — shared theme
+// All rules scoped to .mat-datepicker-content so nothing leaks globally.
+// ─────────────────────────────────────────────────────────────────────────────
+::ng-deep {
+
+  // Panel shell
+  .mat-datepicker-content {
+    border-radius: 14px !important;
+    box-shadow:
+      0 8px 30px rgba(15, 23, 42, 0.14),
+      0 2px 8px  rgba(15, 23, 42, 0.08) !important;
+    border: 1px solid var(--bms-border, #e2e8f0) !important;
+    overflow: hidden;
+  }
+
+  // Header (month/year + nav arrows) — brand gradient
+  .mat-datepicker-content .mat-calendar-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 12px 8px 8px;
+  }
+
+  .mat-datepicker-content .mat-calendar-period-button {
+    color: #fff !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em;
+
+    &:hover { background: rgba(255, 255, 255, 0.15) !important; }
+  }
+
+  .mat-datepicker-content .mat-calendar-previous-button,
+  .mat-datepicker-content .mat-calendar-next-button {
+    color: rgba(255, 255, 255, 0.9) !important;
+
+    &:hover { background: rgba(255, 255, 255, 0.18) !important; }
+  }
+
+  // Day-of-week row
+  .mat-datepicker-content .mat-calendar-table-header th {
+    color: var(--bms-text-muted, #94a3b8);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  // Day cells — rounded square, not full circle
+  .mat-datepicker-content .mat-calendar-body-cell-content {
+    border-radius: 8px !important;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+
+  // Hover — unselected days
+  .mat-datepicker-content
+  .mat-calendar-body-cell:not(.mat-calendar-body-disabled):hover
+  .mat-calendar-body-cell-content:not(.mat-calendar-body-selected) {
+    background: rgba(102, 126, 234, 0.12) !important;
+    color: var(--bms-primary, #2563eb) !important;
+  }
+
+  // Today — brand-colour outline, no fill
+  .mat-datepicker-content .mat-calendar-body-today:not(.mat-calendar-body-selected) {
+    border: 2px solid var(--bms-primary, #2563eb) !important;
+    background: transparent !important;
+    color: var(--bms-primary, #2563eb) !important;
+    font-weight: 700;
+  }
+
+  // Selected day — brand gradient + shadow
+  .mat-datepicker-content .mat-calendar-body-selected {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: #fff !important;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+  }
+
+  // Disabled / out-of-range days — greyed out, not-allowed cursor
+  .mat-datepicker-content .mat-calendar-body-disabled
+  .mat-calendar-body-cell-content {
+    color: var(--bms-text-muted, #94a3b8) !important;
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  // Month/year label in multi-year / year view
+  .mat-datepicker-content .mat-calendar-body-label {
+    color: var(--bms-text-secondary, #64748b);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}

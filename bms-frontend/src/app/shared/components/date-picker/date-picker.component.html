@@ -1,0 +1,70 @@
+<mat-form-field appearance="outline" class="dp-field">
+
+  <mat-label>{{ label }}</mat-label>
+
+  <!-- Left icon -->
+  <mat-icon matPrefix class="dp-prefix-icon">{{ prefixIcon }}</mat-icon>
+
+  <!-- The actual input — readonly so only the calendar popup can set a value -->
+  <input
+    matInput
+    [matDatepicker]="picker"
+    [formControl]="innerCtrl"
+    [min]="minDate"
+    [max]="maxDate"
+    [placeholder]="placeholder"
+    readonly>
+
+  <!-- Calendar toggle -->
+  <mat-datepicker-toggle matIconSuffix [for]="picker" [disabled]="isDisabled">
+    <mat-icon matDatepickerToggleIcon>calendar_month</mat-icon>
+  </mat-datepicker-toggle>
+
+  <mat-datepicker #picker color="primary"></mat-datepicker>
+
+  <!-- Hint -->
+  <mat-hint *ngIf="hint">{{ hint }}</mat-hint>
+
+  <!-- ── Validation errors ───────────────────────────────────────────── -->
+  <!-- required -->
+  <mat-error *ngIf="innerCtrl.hasError('required')">
+    {{ label }} is required.
+  </mat-error>
+
+  <!-- Date is before minDate (set by the picker itself) -->
+  <mat-error *ngIf="innerCtrl.hasError('matDatepickerMin') && !innerCtrl.hasError('required')">
+    <mat-icon class="dp-err-icon">error_outline</mat-icon>
+    Date is too early.
+  </mat-error>
+
+  <!-- Date is after maxDate (set by the picker itself) -->
+  <mat-error *ngIf="innerCtrl.hasError('matDatepickerMax') && !innerCtrl.hasError('required')">
+    <mat-icon class="dp-err-icon">error_outline</mat-icon>
+    Date is too late.
+  </mat-error>
+
+  <!-- Custom pastDate error injected by parent validator -->
+  <mat-error *ngIf="innerCtrl.hasError('pastDate')">
+    <mat-icon class="dp-err-icon">error_outline</mat-icon>
+    Date cannot be in the past.
+  </mat-error>
+
+  <!-- Custom futureDate error injected by parent validator -->
+  <mat-error *ngIf="innerCtrl.hasError('futureDate')">
+    <mat-icon class="dp-err-icon">error_outline</mat-icon>
+    Date cannot be in the future.
+  </mat-error>
+
+  <!-- Custom dateRange error (end before start) injected by group validator -->
+  <mat-error *ngIf="innerCtrl.hasError('dateRange')">
+    <mat-icon class="dp-err-icon">error_outline</mat-icon>
+    Must be after the start date.
+  </mat-error>
+
+  <!-- Unparseable text typed manually (shouldn't happen with readonly, but defensive) -->
+  <mat-error *ngIf="innerCtrl.hasError('matDatepickerParse')">
+    <mat-icon class="dp-err-icon">error_outline</mat-icon>
+    Invalid date format.
+  </mat-error>
+
+</mat-form-field>

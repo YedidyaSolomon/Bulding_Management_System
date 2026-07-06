@@ -3,6 +3,7 @@ using BMS.Application.DTOs.Payments;
 using BMS.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BMS.API.Controllers;
 
@@ -15,12 +16,25 @@ public class PaymentsController : ControllerBase
 
     public PaymentsController(IPaymentService paymentService) => _paymentService = paymentService;
 
-    /// <summary>GET /api/payments — full payment history</summary>
+    /// <summary>GET /api/payments — Admin/Manager: full payment history</summary>
     [HttpGet]
+    [Authorize(Roles = "Admin,Manager")]
     [ProducesResponseType(typeof(ApiResponse<IEnumerable<PaymentDto>>), 200)]
     public async Task<IActionResult> GetAll()
     {
         var payments = await _paymentService.GetAllAsync();
+        return Ok(ApiResponse<IEnumerable<PaymentDto>>.Ok(payments));
+    }
+
+    /// <summary>GET /api/payments/mine — all roles: only payments for the calling user's tenants</summary>
+    [HttpGet("mine")]
+    [ProducesResponseType(typeof(ApiResponse<IEnumerable<PaymentDto>>), 200)]
+    public async Task<IActionResult> GetMine()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                     ?? throw new UnauthorizedAccessException("User ID not found in token.");
+
+        var payments = await _paymentService.GetByUserIdAsync(userId);
         return Ok(ApiResponse<IEnumerable<PaymentDto>>.Ok(payments));
     }
 
@@ -43,19 +57,7 @@ public class PaymentsController : ControllerBase
         return Ok(ApiResponse<IEnumerable<PaymentDto>>.Ok(payments));
     }
 
-    /// <summary>GET /api/payments/outstanding — invoices with outstanding balances</summary>
-    [HttpGet("outstanding")]
-    [ProducesResponseType(typeof(ApiResponse<IEnumerable<PaymentDto>>), 200)]
-    public async Task<IActionResult> Outstanding()
-    {
-        // Outstanding = all payments (caller correlates with invoice status)
-        // Full outstanding balance report is under /api/reports
-        var payments = await _paymentService.GetAllAsync();
-        return Ok(ApiResponse<IEnumerable<PaymentDto>>.Ok(payments,
-            "Use /api/reports/revenue for full outstanding balance analysis."));
-    }
-
-    /// <summary>POST /api/payments — record a payment</summary>
+    /// <summary>POST /api/payments — record a payment (Admin/Manager only)</summary>
     [HttpPost]
     [Authorize(Roles = "Admin,Manager")]
     [ProducesResponseType(typeof(ApiResponse<PaymentDto>), 201)]

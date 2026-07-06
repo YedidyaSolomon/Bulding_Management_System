@@ -13,4 +13,10 @@ public interface ILeaseRepository
     Task                        UpdateAsync(int id, UpdateLeaseDto dto);
     Task                        TerminateAsync(int id, string reason);
     Task<bool>                  ExistsAsync(int id);
+
+    /// <summary>
+    /// Returns all active leases whose EndDate falls within the next
+    /// <paramref name="withinDays"/> days (inclusive of today).
+    /// </summary>
+    Task<IEnumerable<ExpiringLeaseDto>> GetExpiringAsync(int withinDays);
 }

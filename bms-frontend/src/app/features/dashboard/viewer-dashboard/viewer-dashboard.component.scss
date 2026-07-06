@@ -1,66 +1,275 @@
-// Greeting banner
+// ─────────────────────────────────────────────────────────────────────────────
+// Viewer Dashboard — complete styles
+// Matches every class used in viewer-dashboard.component.html
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Host / page wrapper ───────────────────────────────────────────────────────
+:host {
+  display: block;
+  padding: 28px 28px 40px;
+  position: relative;   // stacking context for cursor-glow
+  min-height: 100%;
+}
+
+// ── Loading state ─────────────────────────────────────────────────────────────
+.dash-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 320px;
+  color: var(--bms-text-muted);
+  font-size: 14px;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 1. CURSOR GLOW LAYER
+// ─────────────────────────────────────────────────────────────────────────────
+.cursor-glow {
+  // JS writes --gx / --gy via inline style on mousemove
+  --gx: 50%;
+  --gy: 50%;
+
+  position: fixed;
+  inset: 0;
+  pointer-events: none;          // never intercepts clicks
+  z-index: 0;
+  background: radial-gradient(
+    600px circle at var(--gx) var(--gy),
+    rgba(124, 58, 237, 0.07) 0%,
+    transparent 70%
+  );
+  transition: background 0.05s linear;
+  mix-blend-mode: normal;
+}
+
+// Make sure every real content element sits above the glow
+.welcome-banner,
+.kpi-grid,
+.section-heading,
+.quick-links-grid,
+.detail-columns,
+.detail-card,
+.notif-card,
+.access-note {
+  position: relative;
+  z-index: 1;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 2. WELCOME BANNER
+// ─────────────────────────────────────────────────────────────────────────────
 .welcome-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 20px;
-  background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
-  border-radius: var(--bms-border-radius-lg);
+  padding: 24px 28px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
   color: #fff;
   margin-bottom: 24px;
-  box-shadow: var(--bms-shadow);
-
-  .welcome-text {
-    h2 {
-      font-size: 22px;
-      font-weight: 600;
-      margin: 0 0 8px;
-      letter-spacing: -0.02em;
-    }
-    p {
-      margin: 0;
-      font-size: 14px;
-      line-height: 1.6;
-      color: rgba(255,255,255,.9);
-
-      strong { font-weight: 600; }
-    }
-  }
-
-  .welcome-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(255,255,255,.18);
-    border: 1px solid rgba(255,255,255,.3);
-    border-radius: 20px;
-    padding: 6px 12px;
-    font-size: 13px;
-    font-weight: 500;
-    white-space: nowrap;
-
-    mat-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-    }
-  }
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.35);
+  overflow: hidden;
 }
 
-.section-title {
-  font-size: 15px;
+.banner-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.banner-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--bms-text-primary);
-  margin-bottom: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.75);
+
+  mat-icon {
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+  }
 }
 
-// Quick links grid
-.quick-links-grid {
+.banner-heading {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: #fff;
+}
+
+.banner-sub {
+  margin: 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.5;
+
+  strong { font-weight: 600; color: #fff; }
+}
+
+.banner-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  align-self: center;   // vertically centred with heading
+}
+
+.viewer-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3. KPI METRIC CARDS
+// ─────────────────────────────────────────────────────────────────────────────
+.kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.kpi-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 20px;
+  background: var(--bms-bg-card);
+  border: 1px solid var(--bms-border);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--bms-border);
+    transition: background 0.2s ease;
+  }
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+  }
+
+  // State variants — top accent stripe
+  &--warn  { border-color: rgba(245, 158, 11, 0.35); &::before { background: #F59E0B; } }
+  &--danger{ border-color: rgba(239, 68,  68, 0.35); &::before { background: #EF4444; } }
+  &--info  { border-color: rgba(37,  99, 235, 0.30); &::before { background: #2563EB; } }
+}
+
+// Icon bubble — top-left of card
+.kpi-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  border-radius: 10px;
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: #fff;
+  }
+
+  &--blue   { background: linear-gradient(135deg, #3B82F6, #2563EB); }
+  &--purple { background: linear-gradient(135deg, #8B5CF6, #7C3AED); }
+  &--red    { background: linear-gradient(135deg, #F87171, #EF4444); }
+  &--teal   { background: linear-gradient(135deg, #2DD4BF, #0D9488); }
+}
+
+.kpi-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--bms-text-muted);
+  line-height: 1;
+}
+
+.kpi-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--bms-text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &--muted  { color: var(--bms-text-muted); }
+  &--danger { color: #DC2626; }
+}
+
+.kpi-sub {
+  font-size: 12px;
+  color: var(--bms-text-secondary);
+  line-height: 1.4;
+
+  &--warn   { color: #D97706; font-weight: 500; }
+  &--danger { color: #DC2626; font-weight: 500; }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4. SECTION HEADING
+// ─────────────────────────────────────────────────────────────────────────────
+.section-heading {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--bms-text-secondary);
+  margin: 0 0 14px;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 5. QUICK ACCESS LINKS
+// ─────────────────────────────────────────────────────────────────────────────
+.quick-links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 .quick-link-card {
@@ -70,16 +279,16 @@
   padding: 14px 16px;
   background: var(--bms-bg-card);
   border: 1px solid var(--bms-border);
-  border-radius: var(--bms-border-radius);
+  border-radius: 12px;
   text-decoration: none;
   color: var(--bms-text-primary);
   font-size: 14px;
   font-weight: 500;
-  transition: var(--bms-transition);
-  box-shadow: var(--bms-shadow-sm);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 
   &:hover {
-    box-shadow: var(--bms-shadow);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transform: translateY(-1px);
     border-color: var(--bms-primary);
   }
@@ -99,88 +308,396 @@
   .ql-label { flex: 1; }
 
   .ql-arrow {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
     color: var(--bms-text-muted);
     flex-shrink: 0;
+    transition: transform 0.15s ease;
   }
 
-  // Color variants
-  &--blue   .ql-icon { background: #2563EB; }
-  &--purple .ql-icon { background: #7C3AED; }
-  &--teal   .ql-icon { background: #0D9488; }
-  &--orange .ql-icon { background: #F59E0B; }
+  &:hover .ql-arrow { transform: translateX(3px); }
+
+  &--blue   .ql-icon { background: linear-gradient(135deg, #3B82F6, #2563EB); }
+  &--purple .ql-icon { background: linear-gradient(135deg, #8B5CF6, #7C3AED); }
+  &--teal   .ql-icon { background: linear-gradient(135deg, #2DD4BF, #0D9488); }
+  &--orange .ql-icon { background: linear-gradient(135deg, #FCD34D, #F59E0B); }
 }
 
-// Notification list
-.notification-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+// ─────────────────────────────────────────────────────────────────────────────
+// 6. DETAIL COLUMNS (lease + invoices side by side)
+// ─────────────────────────────────────────────────────────────────────────────
+.detail-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  @media (max-width: 860px) {
+    grid-template-columns: 1fr;
+  }
 }
 
-.notification-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px;
+// ─────────────────────────────────────────────────────────────────────────────
+// 7. SHARED DETAIL CARD + CARD HEADER
+// ─────────────────────────────────────────────────────────────────────────────
+.detail-card {
   background: var(--bms-bg-card);
   border: 1px solid var(--bms-border);
-  border-radius: var(--bms-border-radius);
-  box-shadow: var(--bms-shadow-sm);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
 
-  .notif-icon {
+  &:hover {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.09);
+  }
+}
+
+.notif-card {
+  margin-bottom: 0;   // sits after detail-columns which already has margin
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--bms-border);
+  gap: 12px;
+}
+
+.card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+
+  h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--bms-text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.card-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 8px;
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--bms-primary);
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 17px;
+    width: 17px;
+    height: 17px;
+  }
+}
+
+.card-view-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bms-primary);
+  text-decoration: none;
+  white-space: nowrap;
+  border-radius: 6px;
+  padding: 3px 6px;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  &:hover { background: rgba(37, 99, 235, 0.07); }
+}
+
+// Unread count pill inside notification card heading
+.unread-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 20px;
+  background: #EF4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 8. EMPTY STATE (inside cards)
+// ─────────────────────────────────────────────────────────────────────────────
+.card-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 24px;
+  text-align: center;
+  gap: 6px;
+
+  .empty-icon-wrap {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--bms-bg);
+    margin-bottom: 4px;
 
-    mat-icon { font-size: 16px; width: 16px; height: 16px; color: #fff; }
-
-    &--info    { background: #3B82F6; }
-    &--success { background: #10B981; }
-    &--warning { background: #F59E0B; }
+    mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+      color: var(--bms-text-muted);
+      opacity: 0.6;
+    }
   }
 
-  .notif-body {
-    flex: 1;
-    min-width: 0;
+  p {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--bms-text-secondary);
+    line-height: 1.4;
+  }
 
-    p {
-      margin: 0 0 4px;
-      font-size: 13px;
-      color: var(--bms-text-primary);
-      line-height: 1.5;
-    }
-
-    .notif-time {
-      font-size: 11px;
-      color: var(--bms-text-muted);
-    }
+  span {
+    font-size: 12px;
+    color: var(--bms-text-muted);
+    line-height: 1.5;
+    max-width: 220px;
   }
 }
 
-// Footer note
+// ─────────────────────────────────────────────────────────────────────────────
+// 9. LEASE DETAIL ROWS
+// ─────────────────────────────────────────────────────────────────────────────
+.lease-detail {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.lease-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--bms-border);
+
+  &:last-child { border-bottom: none; }
+}
+
+.lease-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bms-text-muted);
+  flex-shrink: 0;
+  min-width: 100px;
+}
+
+.lease-val {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bms-text-primary);
+  text-align: right;
+}
+
+.text-warn   { color: #D97706 !important; font-weight: 600 !important; }
+.text-danger { color: #DC2626 !important; font-weight: 600 !important; }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 10. INVOICE LIST
+// ─────────────────────────────────────────────────────────────────────────────
+.invoice-list {
+  padding: 8px 0;
+}
+
+.invoice-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 20px;
+  transition: background 0.12s ease;
+
+  &:hover { background: var(--bms-bg); }
+
+  & + & { border-top: 1px solid var(--bms-border); }
+}
+
+.inv-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.inv-number {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bms-text-primary);
+}
+
+.inv-period {
+  font-size: 11px;
+  color: var(--bms-text-muted);
+}
+
+.inv-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.inv-amount {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bms-text-primary);
+  white-space: nowrap;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 11. NOTIFICATION LIST
+// ─────────────────────────────────────────────────────────────────────────────
+.notif-list {
+  padding: 8px 0;
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 20px;
+  position: relative;
+  transition: background 0.12s ease;
+
+  &:hover { background: var(--bms-bg); }
+
+  & + & { border-top: 1px solid var(--bms-border); }
+
+  &--unread {
+    background: rgba(37, 99, 235, 0.025);
+  }
+}
+
+.notif-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 2px;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: #fff;
+  }
+
+  // Type colour variants — set via notifClass() in .ts
+  &.type-general  { background: linear-gradient(135deg, #60A5FA, #2563EB); }
+  &.type-invoice  { background: linear-gradient(135deg, #818CF8, #4F46E5); }
+  &.type-lease    { background: linear-gradient(135deg, #34D399, #059669); }
+  &.type-payment  { background: linear-gradient(135deg, #FCD34D, #D97706); }
+  &.type-alert    { background: linear-gradient(135deg, #F87171, #DC2626); }
+}
+
+.notif-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.notif-title {
+  margin: 0 0 3px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bms-text-primary);
+  line-height: 1.4;
+}
+
+.notif-msg {
+  margin: 0;
+  font-size: 12px;
+  color: var(--bms-text-secondary);
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.notif-time {
+  font-size: 11px;
+  color: var(--bms-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.unread-dot {
+  position: absolute;
+  top: 16px;
+  right: 14px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2563EB;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 12. ACCESS NOTE FOOTER
+// ─────────────────────────────────────────────────────────────────────────────
 .access-note {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 24px;
-  padding: 12px 14px;
-  background: #FEF3C7;
-  border: 1px solid #FCD34D;
-  border-radius: var(--bms-border-radius);
+  margin-top: 20px;
+  padding: 11px 16px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 10px;
   font-size: 13px;
   color: #92400E;
 
   mat-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
+    font-size: 17px;
+    width: 17px;
+    height: 17px;
     color: #B45309;
+    flex-shrink: 0;
   }
 }

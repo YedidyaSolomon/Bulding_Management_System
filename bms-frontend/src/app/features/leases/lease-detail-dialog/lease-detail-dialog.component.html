@@ -1,0 +1,110 @@
+<div class="dialog-header">
+  <div class="lease-avatar">
+    <mat-icon>description</mat-icon>
+  </div>
+  <div class="header-text">
+    <h2 mat-dialog-title>Lease #{{ data.lease.id }}</h2>
+    <div class="header-badges">
+      <span class="badge" [ngClass]="statusClass(data.lease.status)">
+        {{ statusLabel(data.lease.status) }}
+      </span>
+      <span class="days-chip" [ngClass]="daysRemainingClass">
+        {{ daysRemainingLabel }}
+      </span>
+    </div>
+  </div>
+</div>
+
+<mat-dialog-content>
+
+  <!-- ── Parties ───────────────────────────────────────────────────────── -->
+  <div class="detail-section">
+    <div class="section-title">
+      <mat-icon>handshake</mat-icon>
+      Parties
+    </div>
+    <div class="detail-grid">
+      <div class="detail-item">
+        <span class="detail-label">Unit</span>
+        <span class="detail-value">{{ data.lease.unitNumber }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Tenant</span>
+        <span class="detail-value">{{ data.lease.tenantName }}</span>
+      </div>
+    </div>
+  </div>
+
+  <mat-divider />
+
+  <!-- ── Lease Period ──────────────────────────────────────────────────── -->
+  <div class="detail-section">
+    <div class="section-title">
+      <mat-icon>date_range</mat-icon>
+      Lease Period
+    </div>
+    <div class="detail-grid">
+      <div class="detail-item">
+        <span class="detail-label">Start Date</span>
+        <span class="detail-value">{{ data.lease.startDate | date:'mediumDate' }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">End Date</span>
+        <span class="detail-value">{{ data.lease.endDate | date:'mediumDate' }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Duration</span>
+        <span class="detail-value">{{ leaseDurationMonths }} month{{ leaseDurationMonths !== 1 ? 's' : '' }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Time Left</span>
+        <span class="detail-value" [ngClass]="daysRemainingClass">{{ daysRemainingLabel }}</span>
+      </div>
+    </div>
+  </div>
+
+  <mat-divider />
+
+  <!-- ── Financials ────────────────────────────────────────────────────── -->
+  <div class="detail-section">
+    <div class="section-title">
+      <mat-icon>payments</mat-icon>
+      Financials
+    </div>
+    <div class="detail-grid">
+      <div class="detail-item">
+        <span class="detail-label">Monthly Rent</span>
+        <span class="detail-value financial">{{ data.lease.monthlyRent | etbCurrency }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Deposit Amount</span>
+        <span class="detail-value financial">{{ data.lease.depositAmount | etbCurrency }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Total Contract Value</span>
+        <span class="detail-value financial">
+          {{ (data.lease.monthlyRent * leaseDurationMonths) | etbCurrency }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Termination Reason ────────────────────────────────────────────── -->
+  <ng-container *ngIf="data.lease.terminationReason">
+    <mat-divider />
+    <div class="detail-section">
+      <div class="section-title">
+        <mat-icon>gavel</mat-icon>
+        Termination Reason
+      </div>
+      <div class="termination-box">
+        <p>{{ data.lease.terminationReason }}</p>
+      </div>
+    </div>
+  </ng-container>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-raised-button color="primary" (click)="close()">Close</button>
+</mat-dialog-actions>

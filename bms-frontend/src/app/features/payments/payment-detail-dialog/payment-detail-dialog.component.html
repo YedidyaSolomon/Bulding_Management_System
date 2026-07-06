@@ -1,0 +1,72 @@
+<!-- Header -->
+<div class="detail-header">
+  <div class="header-left">
+    <div class="pay-icon">
+      <mat-icon>{{ methodIcon(payment.paymentMethod) }}</mat-icon>
+    </div>
+    <div>
+      <h2 mat-dialog-title>Payment Details</h2>
+      <p class="sub-label">{{ payment.invoiceNumber }}</p>
+    </div>
+  </div>
+  <button mat-icon-button (click)="onClose()" matTooltip="Close">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content>
+
+  <!-- Amount highlight -->
+  <div class="amount-banner">
+    <span class="amount-label">Amount Paid</span>
+    <span class="amount-value">{{ payment.amountPaid | etbCurrency }}</span>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- Detail grid -->
+  <div class="detail-section">
+    <div class="detail-grid">
+
+      <div class="detail-item">
+        <span class="detail-label">Payment Method</span>
+        <span class="detail-value">
+          <mat-icon class="inline-icon">{{ methodIcon(payment.paymentMethod) }}</mat-icon>
+          {{ methodLabel(payment.paymentMethod) }}
+        </span>
+      </div>
+
+      <div class="detail-item">
+        <span class="detail-label">Payment Date</span>
+        <span class="detail-value">{{ payment.paymentDate | date:'longDate' }}</span>
+      </div>
+
+      <div class="detail-item">
+        <span class="detail-label">Invoice</span>
+        <span class="detail-value">{{ payment.invoiceNumber }}</span>
+      </div>
+
+      <div class="detail-item">
+        <span class="detail-label">Reference Number</span>
+        <span class="detail-value ref-value">
+          {{ payment.referenceNumber || '—' }}
+        </span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Notes -->
+  <div class="notes-section" *ngIf="payment.notes">
+    <mat-divider></mat-divider>
+    <div class="detail-section">
+      <span class="detail-label">Notes</span>
+      <p class="notes-text">{{ payment.notes }}</p>
+    </div>
+  </div>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onClose()">Close</button>
+</mat-dialog-actions>

@@ -1,15 +1,19 @@
 .shell-container {
-  height: 100vh;
+  // Fill the full viewport — do NOT lock overflow here.
+  // The browser's native scrollbar will sit flush against the window edge
+  // because nothing constrains the width of this container.
+  height: 100%;
+  min-height: 100vh;
   display: flex;
-  overflow: hidden;
 }
 
 .bms-sidenav {
   width: var(--bms-sidebar-width);
   background: var(--bms-bg-sidebar) !important;
   border-right: none !important;
-  transition: width .25s cubic-bezier(.4,0,.2,1);
-  overflow: hidden;
+  transition: width .25s cubic-bezier(.4, 0, .2, 1);
+  // Do NOT set overflow: hidden here — it clips the sidebar content on collapse
+  flex-shrink: 0;
 
   &.collapsed {
     width: var(--bms-sidebar-collapsed-w);
@@ -17,19 +21,30 @@
 }
 
 .bms-content {
+  // Takes up all remaining horizontal space beside the sidebar
+  flex: 1;
+  min-width: 0;          // prevents flex blowout on narrow viewports
   display: flex;
   flex-direction: column;
   background: var(--bms-bg);
-  overflow: hidden;
 }
 
 .bms-main {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
+  // NO overflow-y: auto — let the page scroll naturally so the browser's
+  // own scrollbar sits at the true right edge of the viewport.
+  background: var(--bms-bg);
 }
 
-// Material sidenav container resets
+// Material sidenav container reset
 ::ng-deep .mat-drawer-container {
   background: transparent !important;
+  // Make the drawer container stretch the full height naturally
+  height: auto !important;
+  min-height: 100vh;
+}
+
+// The mat-sidenav-content element Material generates must also stretch
+::ng-deep .mat-drawer-content {
+  overflow: visible !important;   // hand scrolling back to the body
 }

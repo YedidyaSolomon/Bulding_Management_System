@@ -10,6 +10,8 @@ namespace BMS.Infrastructure.Services;
 
 public class JwtTokenService : IJwtTokenService
 {
+    public const string TenantIdClaimType = "tenant_id";
+
     private readonly JwtSettings _settings;
 
     public JwtTokenService(IOptions<JwtSettings> options)
@@ -17,16 +19,20 @@ public class JwtTokenService : IJwtTokenService
         _settings = options.Value;
     }
 
-    public string GenerateToken(string userId, string email, string fullName, string role)
+    public string GenerateToken(string userId, string email, string fullName, string role, int? tenantId = null)
     {
-        var claims = new[]
+        var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub,   userId),
-            new Claim(JwtRegisteredClaimNames.Email, email),
-            new Claim(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString()),
-            new Claim(ClaimTypes.Name,               fullName),
-            new Claim(ClaimTypes.Role,               role)
+            new(JwtRegisteredClaimNames.Sub,   userId),
+            new(ClaimTypes.NameIdentifier,     userId),
+            new(JwtRegisteredClaimNames.Email, email),
+            new(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString()),
+            new(ClaimTypes.Name,               fullName),
+            new(ClaimTypes.Role,               role)
         };
+
+        if (tenantId.HasValue)
+            claims.Add(new Claim(TenantIdClaimType, tenantId.Value.ToString()));
 
         var signingKey  = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.SecretKey));
         var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);

@@ -40,6 +40,38 @@ public class PaymentRepository : IPaymentRepository
         return payments.Select(MapToDto);
     }
 
+    public async Task<IEnumerable<PaymentDto>> GetByUserIdAsync(string userId)
+    {
+        // Payment → Invoice → Lease → Tenant (UserId)
+        var payments = await _context.Payments
+            .Include(p => p.Invoice)
+                .ThenInclude(i => i.Lease)
+                    .ThenInclude(l => l.Tenant)
+            .Where(p => p.Invoice.Lease.Tenant.UserId == userId)
+            .OrderByDescending(p => p.PaymentDate)
+            .ToListAsync();
+        return payments.Select(MapToDto);
+    }
+
+    public async Task<IEnumerable<PaymentDto>> GetByTenantIdAsync(int tenantId)
+    {
+        var payments = await _context.Payments
+            .Include(p => p.Invoice)
+                .ThenInclude(i => i.Lease)
+            .Where(p => p.Invoice.Lease.TenantId == tenantId)
+            .OrderByDescending(p => p.PaymentDate)
+            .ToListAsync();
+        return payments.Select(MapToDto);
+    }
+
+    public async Task<int?> GetTenantIdForPaymentAsync(int paymentId)
+    {
+        return await _context.Payments
+            .Where(p => p.Id == paymentId)
+            .Select(p => (int?)p.Invoice.Lease.TenantId)
+            .FirstOrDefaultAsync();
+    }
+
     public async Task<PaymentDto> CreateAsync(CreatePaymentDto dto)
     {
         var payment = new Payment

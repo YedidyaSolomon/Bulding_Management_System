@@ -11,4 +11,10 @@ public interface IUnitRepository
     Task                       DeleteAsync(int id);
     Task<bool>                 ExistsAsync(int id);
     Task<bool>                 IsUnitNumberTakenAsync(string unitNumber, int? excludeId = null);
+
+    /// <summary>
+    /// Returns the number of units already on a given floor.
+    /// Used to enforce the max-3-units-per-floor business rule.
+    /// </summary>
+    Task<int> CountByFloorAsync(int floorNumber, int? excludeUnitId = null);
 }

@@ -1,0 +1,115 @@
+<div class="detail-header">
+  <div class="header-left">
+    <div class="inv-icon"><mat-icon>receipt_long</mat-icon></div>
+    <div>
+      <h2 mat-dialog-title>{{ invoice.invoiceNumber }}</h2>
+      <span class="badge" [ngClass]="statusClass(invoice.status)">
+        {{ statusLabel(invoice.status) }}
+      </span>
+    </div>
+  </div>
+  <button mat-icon-button (click)="onClose()" matTooltip="Close">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content>
+
+  <!-- Invoice metadata -->
+  <section class="detail-section">
+    <h4 class="section-title">Invoice Details</h4>
+    <div class="detail-grid">
+      <div class="detail-item">
+        <span class="detail-label">Tenant</span>
+        <span class="detail-value">{{ invoice.tenantName || '—' }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Unit</span>
+        <span class="detail-value">{{ invoice.unitNumber || '—' }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Billing Period</span>
+        <span class="detail-value">{{ periodLabel }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Issue Date</span>
+        <span class="detail-value">{{ invoice.issueDate | date:'mediumDate' }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Due Date</span>
+        <span class="detail-value">{{ invoice.dueDate | date:'mediumDate' }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Lease ID</span>
+        <span class="detail-value">#{{ invoice.leaseId }}</span>
+      </div>
+    </div>
+  </section>
+
+  <mat-divider></mat-divider>
+
+  <!-- Financial summary -->
+  <section class="detail-section">
+    <h4 class="section-title">Financial Summary</h4>
+    <div class="fin-summary">
+      <div class="fin-card">
+        <span class="fin-label">Amount Due</span>
+        <span class="fin-amount">{{ invoice.amountDue | etbCurrency }}</span>
+      </div>
+      <div class="fin-card paid">
+        <span class="fin-label">Total Paid</span>
+        <span class="fin-amount">{{ totalPaid | etbCurrency }}</span>
+      </div>
+      <div class="fin-card" [class.overdue]="balance > 0">
+        <span class="fin-label">Balance</span>
+        <span class="fin-amount">{{ balance | etbCurrency }}</span>
+      </div>
+    </div>
+  </section>
+
+  <mat-divider></mat-divider>
+
+  <!-- Payment history -->
+  <section class="detail-section">
+    <h4 class="section-title">Payment History</h4>
+
+    <div class="loading-row" *ngIf="loadingPayments">
+      <mat-spinner diameter="18"></mat-spinner>
+      <span>Loading payments…</span>
+    </div>
+
+    <div class="empty-payments" *ngIf="!loadingPayments && payments.length === 0">
+      <mat-icon>payments</mat-icon>
+      <span>No payments recorded yet.</span>
+    </div>
+
+    <div class="payment-list" *ngIf="!loadingPayments && payments.length > 0">
+      <div class="payment-row" *ngFor="let p of payments">
+        <div class="payment-left">
+          <mat-icon class="method-icon">{{ p.paymentMethod === 'Cash' ? 'payments' : p.paymentMethod === 'BankTransfer' ? 'account_balance' : p.paymentMethod === 'MobileMoney' ? 'smartphone' : 'receipt' }}</mat-icon>
+          <div>
+            <div class="payment-method">{{ methodLabel(p.paymentMethod) }}</div>
+            <div class="payment-ref" *ngIf="p.referenceNumber">Ref: {{ p.referenceNumber }}</div>
+            <div class="payment-date">{{ p.paymentDate | date:'mediumDate' }}</div>
+          </div>
+        </div>
+        <span class="payment-amount">{{ p.amountPaid | etbCurrency }}</span>
+      </div>
+    </div>
+  </section>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button color="warn" *ngIf="canCancelInv"
+          [disabled]="actionLoading" (click)="onCancel()">
+    <mat-icon>cancel</mat-icon> Cancel Invoice
+  </button>
+  <button mat-raised-button color="primary" *ngIf="canIssue"
+          [disabled]="actionLoading" (click)="onIssue()">
+    <mat-spinner diameter="16" *ngIf="actionLoading"></mat-spinner>
+    <mat-icon *ngIf="!actionLoading">send</mat-icon>
+    <span *ngIf="!actionLoading">Issue Invoice</span>
+  </button>
+  <button mat-button (click)="onClose()" [disabled]="actionLoading">Close</button>
+</mat-dialog-actions>

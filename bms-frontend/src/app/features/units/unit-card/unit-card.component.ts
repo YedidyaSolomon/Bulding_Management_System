@@ -34,11 +34,20 @@ export class UnitCardComponent {
 
   statusClass(s: string): string {
     const map: Record<string, string> = {
-      Available:        'badge-success',
-      Occupied:         'badge-info',
-      UnderMaintenance: 'badge-warning',
-      Reserved:         'badge-neutral',
+      Available:        'badge-success',    // green
+      Occupied:         'badge-info',       // blue
+      UnderMaintenance: 'badge-warning',    // amber
+      Reserved:         'badge-reserved',   // purple (defined in component SCSS)
     };
     return map[s] ?? 'badge-neutral';
+  }
+
+  /** Returns the Material icon name for a given unit type. */
+  unitTypeIcon(type: string): string {
+    const map: Record<string, string> = {
+      Shop:   'storefront',
+      Office: 'business_center',
+    };
+    return map[type] ?? 'apartment';
   }
 }

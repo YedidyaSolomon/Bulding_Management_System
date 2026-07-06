@@ -1,0 +1,445 @@
+<div class="bms-page fade-in">
+
+  <!-- ── Page header ─────────────────────────────────────────────────────── -->
+  <div class="bms-page-header">
+    <div>
+      <h1>Reports</h1>
+      <p>Analytics and insights across your property portfolio.</p>
+    </div>
+    <button
+      mat-stroked-button
+      class="export-btn"
+      (click)="exportExcel()"
+      [disabled]="exporting || loading[activeTab]"
+      matTooltip="Download {{ activeTabLabel }} report as Excel">
+      <mat-icon>download</mat-icon>
+      {{ exporting ? 'Exporting…' : 'Export to Excel' }}
+    </button>
+  </div>
+
+  <!-- ── Tab selector ─────────────────────────────────────────────────────── -->
+  <div class="report-tabs" role="tablist">
+    <button
+      *ngFor="let tab of tabs"
+      class="report-tab"
+      [class.report-tab--active]="activeTab === tab.id"
+      role="tab"
+      [attr.aria-selected]="activeTab === tab.id"
+      (click)="selectTab(tab.id)">
+      <mat-icon>{{ tab.icon }}</mat-icon>
+      <span>{{ tab.label }}</span>
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- OCCUPANCY REPORT                                                       -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="activeTab === 'occupancy'">
+
+    <!-- Loading skeleton -->
+    <div *ngIf="loading['occupancy']" class="report-body">
+      <div class="kpi-grid">
+        <div class="kpi-skeleton skeleton" *ngFor="let i of [1,2,3,4]"></div>
+      </div>
+      <div class="charts-row">
+        <div class="chart-card skeleton chart-skeleton"></div>
+        <div class="chart-card skeleton chart-skeleton"></div>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="error['occupancy'] && !loading['occupancy']" class="report-error">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ error['occupancy'] }}</p>
+      <button mat-stroked-button (click)="retry('occupancy')">
+        <mat-icon>refresh</mat-icon> Retry
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div *ngIf="occupancy && !loading['occupancy']" class="report-body fade-in">
+
+      <!-- KPI cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-icon--green"><mat-icon>speed</mat-icon></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Occupancy Rate</span>
+            <span class="kpi-value">{{ (anim['occRate'] || 0) | number:'1.1-1' }}%</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-icon--blue"><mat-icon>meeting_room</mat-icon></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Occupied Units</span>
+            <span class="kpi-value">{{ (anim['occOcc'] || 0) | number:'1.0-0' }}</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-icon--amber"><mat-icon>door_open</mat-icon></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Vacant Units</span>
+            <span class="kpi-value">{{ (anim['occVac'] || 0) | number:'1.0-0' }}</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-icon--purple"><mat-icon>apartment</mat-icon></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Total Units</span>
+            <span class="kpi-value">{{ (anim['occTotal'] || 0) | number:'1.0-0' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-row" *ngIf="occupancyChartData && occupancyFloorData">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <mat-icon>donut_large</mat-icon>
+            <h3>Occupied vs Vacant</h3>
+          </div>
+          <div class="chart-wrap chart-wrap--sm">
+            <canvas baseChart
+              [data]="occupancyChartData"
+              [options]="occupancyChartOpts"
+              type="doughnut">
+            </canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <mat-icon>stacked_bar_chart</mat-icon>
+            <h3>Occupancy by Floor</h3>
+          </div>
+          <div class="chart-wrap">
+            <canvas baseChart
+              [data]="occupancyFloorData"
+              [options]="floorBarOpts"
+              type="bar">
+            </canvas>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </ng-container>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- REVENUE REPORT                                                         -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="activeTab === 'revenue'">
+
+    <div *ngIf="loading['revenue']" class="report-body">
+      <div class="kpi-grid">
+        <div class="kpi-skeleton skeleton" *ngFor="let i of [1,2,3,4]"></div>
+      </div>
+      <div class="chart-card skeleton chart-skeleton--full"></div>
+    </div>
+
+    <div *ngIf="error['revenue'] && !loading['revenue']" class="report-error">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ error['revenue'] }}</p>
+      <button mat-stroked-button (click)="retry('revenue')">
+        <mat-icon>refresh</mat-icon> Retry
+      </button>
+    </div>
+
+    <div *ngIf="revenue && !loading['revenue']" class="report-body fade-in">
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-icon--green"><mat-icon>payments</mat-icon></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Collected This Month</span>
+            <span class="kpi-value kpi-value--sm">{{ anim['revCol'] || 0 | etbCurrency }}</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-icon--blue"><mat-icon>receipt_long</mat-icon></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Expected This Month</span>
+            <span class="kpi-value kpi-value--sm">{{ anim['revExp'] || 0 | etbCurrency }}</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-icon--purple"><mat-icon>trending_up</mat-icon></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Year-to-Date</span>
+            <span class="kpi-value kpi-value--sm">{{ anim['revYtd'] || 0 | etbCurrency }}</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-icon--teal"><mat-icon>percent</mat-icon></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Collection Rate</span>
+            <span class="kpi-value">{{ (anim['revRate'] || 0) | number:'1.1-1' }}%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card" *ngIf="revenueChartData">
+        <div class="chart-card-header">
+          <mat-icon>bar_chart</mat-icon>
+          <h3>Collected vs Expected — Last 6 Months</h3>
+        </div>
+        <div class="chart-wrap chart-wrap--lg">
+          <canvas baseChart
+            [data]="revenueChartData"
+            [options]="revenueBarOpts"
+            type="bar">
+          </canvas>
+        </div>
+      </div>
+
+    </div>
+  </ng-container>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- ARREARS REPORT                                                         -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="activeTab === 'arrears'">
+
+    <div *ngIf="loading['arrears']" class="report-body">
+      <div class="kpi-grid">
+        <div class="kpi-skeleton skeleton" *ngFor="let i of [1,2,3]"></div>
+      </div>
+      <div class="table-skeleton skeleton"></div>
+    </div>
+
+    <div *ngIf="error['arrears'] && !loading['arrears']" class="report-error">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ error['arrears'] }}</p>
+      <button mat-stroked-button (click)="retry('arrears')">
+        <mat-icon>refresh</mat-icon> Retry
+      </button>
+    </div>
+
+    <div *ngIf="arrears && !loading['arrears']" class="report-body fade-in">
+
+      <div class="kpi-grid kpi-grid--3">
+        <div class="kpi-card kpi-card--danger">
+          <div class="kpi-icon kpi-icon--red"><mat-icon>warning_amber</mat-icon></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Total Overdue</span>
+            <span class="kpi-value kpi-value--sm kpi-value--red">{{ anim['arrOwed'] || 0 | etbCurrency }}</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-icon--amber"><mat-icon>people</mat-icon></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Tenants in Arrears</span>
+            <span class="kpi-value">{{ (anim['arrTen'] || 0) | number:'1.0-0' }}</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-icon--red"><mat-icon>receipt_long</mat-icon></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Overdue Invoices</span>
+            <span class="kpi-value">{{ (anim['arrInv'] || 0) | number:'1.0-0' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arrears table -->
+      <div class="data-card" *ngIf="arrears.arrears.length > 0">
+        <div class="data-card-header">
+          <div class="data-card-title">
+            <mat-icon>list_alt</mat-icon>
+            <h3>Tenant Arrears</h3>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="report-table" matSort (matSortChange)="onArrearsSort($event)">
+            <thead>
+              <tr>
+                <th mat-sort-header="tenantName">Tenant</th>
+                <th>Unit</th>
+                <th mat-sort-header="overdueInvoices">Invoices</th>
+                <th mat-sort-header="oldestDueDays">Oldest (days)</th>
+                <th mat-sort-header="totalOwed" class="col-right">Total Owed</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let a of sortedArrears; trackBy: trackById">
+                <td class="td-primary">{{ a.tenantName }}</td>
+                <td><span class="invoice-pill">{{ a.unitNumber }}</span></td>
+                <td>{{ a.overdueInvoices }}</td>
+                <td>
+                  <span class="badge" [ngClass]="expiryClass(a.oldestDueDays)">
+                    {{ a.oldestDueDays }}d
+                  </span>
+                </td>
+                <td class="col-right td-amount">{{ a.totalOwed | etbCurrency }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="report-empty" *ngIf="arrears.arrears.length === 0">
+        <mat-icon>check_circle_outline</mat-icon>
+        <p>No tenants are currently in arrears.</p>
+      </div>
+
+    </div>
+  </ng-container>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- LEASE EXPIRY REPORT                                                    -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="activeTab === 'lease-expiry'">
+
+    <!-- Filter row -->
+    <div class="filter-row">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="days-field">
+        <mat-label>Expiring within</mat-label>
+        <mat-select [formControl]="leaseExpiryDays">
+          <mat-option *ngFor="let d of dayOptions" [value]="d">{{ d }} days</mat-option>
+        </mat-select>
+        <mat-icon matPrefix>date_range</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <div *ngIf="loading['lease-expiry']" class="report-body">
+      <div class="table-skeleton skeleton"></div>
+    </div>
+
+    <div *ngIf="error['lease-expiry'] && !loading['lease-expiry']" class="report-error">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ error['lease-expiry'] }}</p>
+      <button mat-stroked-button (click)="retry('lease-expiry')">
+        <mat-icon>refresh</mat-icon> Retry
+      </button>
+    </div>
+
+    <div *ngIf="leaseExpiry && !loading['lease-expiry']" class="report-body fade-in">
+
+      <div class="summary-banner"
+           [class.summary-banner--warn]="leaseExpiry.expiringCount > 0">
+        <mat-icon>{{ leaseExpiry.expiringCount > 0 ? 'warning_amber' : 'check_circle_outline' }}</mat-icon>
+        <span>
+          <strong>{{ leaseExpiry.expiringCount }}</strong>
+          lease{{ leaseExpiry.expiringCount !== 1 ? 's' : '' }} expiring within
+          {{ leaseExpiryDays.value }} days
+        </span>
+      </div>
+
+      <div class="data-card" *ngIf="leaseExpiry.leases.length > 0">
+        <div class="data-card-header">
+          <div class="data-card-title"><mat-icon>event_busy</mat-icon><h3>Expiring Leases</h3></div>
+        </div>
+        <div class="table-wrap">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>Unit</th>
+                <th>Tenant</th>
+                <th>End Date</th>
+                <th>Monthly Rent</th>
+                <th class="col-right">Days Remaining</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let l of leaseSortedList(leaseExpiry.leases); trackBy: trackById">
+                <td><span class="invoice-pill">{{ l.unitNumber }}</span></td>
+                <td class="td-primary">{{ l.tenantName }}</td>
+                <td>{{ l.endDate | date:'mediumDate' }}</td>
+                <td>{{ l.monthlyRent | etbCurrency }}</td>
+                <td class="col-right">
+                  <span class="badge" [ngClass]="expiryClass(l.daysRemaining)">
+                    {{ expiryLabel(l.daysRemaining) }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="report-empty" *ngIf="leaseExpiry.leases.length === 0">
+        <mat-icon>check_circle_outline</mat-icon>
+        <p>No leases expiring within {{ leaseExpiryDays.value }} days.</p>
+      </div>
+
+    </div>
+  </ng-container>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- DOCUMENT EXPIRY REPORT                                                 -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="activeTab === 'document-expiry'">
+
+    <div class="filter-row">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="days-field">
+        <mat-label>Expiring within</mat-label>
+        <mat-select [formControl]="documentExpiryDays">
+          <mat-option *ngFor="let d of dayOptions" [value]="d">{{ d }} days</mat-option>
+        </mat-select>
+        <mat-icon matPrefix>date_range</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <div *ngIf="loading['document-expiry']" class="report-body">
+      <div class="table-skeleton skeleton"></div>
+    </div>
+
+    <div *ngIf="error['document-expiry'] && !loading['document-expiry']" class="report-error">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ error['document-expiry'] }}</p>
+      <button mat-stroked-button (click)="retry('document-expiry')">
+        <mat-icon>refresh</mat-icon> Retry
+      </button>
+    </div>
+
+    <div *ngIf="documentExpiry && !loading['document-expiry']" class="report-body fade-in">
+
+      <div class="summary-banner"
+           [class.summary-banner--warn]="documentExpiry.expiringCount > 0">
+        <mat-icon>{{ documentExpiry.expiringCount > 0 ? 'warning_amber' : 'check_circle_outline' }}</mat-icon>
+        <span>
+          <strong>{{ documentExpiry.expiringCount }}</strong>
+          document{{ documentExpiry.expiringCount !== 1 ? 's' : '' }} expiring within
+          {{ documentExpiryDays.value }} days
+        </span>
+      </div>
+
+      <div class="data-card" *ngIf="documentExpiry.documents.length > 0">
+        <div class="data-card-header">
+          <div class="data-card-title"><mat-icon>folder_off</mat-icon><h3>Expiring Documents</h3></div>
+        </div>
+        <div class="table-wrap">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>Tenant</th>
+                <th>Document Type</th>
+                <th>Expiry Date</th>
+                <th class="col-right">Days Remaining</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let doc of docSortedList(documentExpiry.documents); trackBy: trackById">
+                <td class="td-primary">{{ doc.tenantName }}</td>
+                <td>{{ doc.documentType }}</td>
+                <td>{{ doc.expiryDate | date:'mediumDate' }}</td>
+                <td class="col-right">
+                  <span class="badge" [ngClass]="expiryClass(doc.daysRemaining)">
+                    {{ expiryLabel(doc.daysRemaining) }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="report-empty" *ngIf="documentExpiry.documents.length === 0">
+        <mat-icon>check_circle_outline</mat-icon>
+        <p>No documents expiring within {{ documentExpiryDays.value }} days.</p>
+      </div>
+
+    </div>
+  </ng-container>
+
+</div>
+

@@ -1,42 +1,112 @@
 <div class="auth-wrapper">
 
-  <!-- ── Left panel: branding ──────────────────────────────────────── -->
-  <div class="auth-branding">
-    <div class="branding-content">
-      <div class="brand-logo">
-        <span class="brand-icon">
-          <mat-icon>domain</mat-icon>
-        </span>
-        <span class="brand-text">BMS</span>
-      </div>
-      <h1>Building Management<br>System</h1>
-      <p>A modern, enterprise-grade platform for managing properties, tenants, leases, invoices, and payments — all in one place.</p>
-      <div class="feature-list">
-        <div class="feature-item">
-          <span class="feature-dot"></span>
-          <span>Lease & Tenant Management</span>
-        </div>
-        <div class="feature-item">
-          <span class="feature-dot"></span>
-          <span>Automated Invoicing & Payments</span>
-        </div>
-        <div class="feature-item">
-          <span class="feature-dot"></span>
-          <span>Occupancy & Revenue Reports</span>
-        </div>
-        <div class="feature-item">
-          <span class="feature-dot"></span>
-          <span>Role-Based Access Control</span>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- LEFT PANEL — branding + building photo                                -->
+  <!-- Never re-renders on child route navigation.                           -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <aside class="auth-branding" aria-label="BMS branding panel">
 
-  <!-- ── Right panel: form ──────────────────────────────────────────── -->
-  <div class="auth-form-panel">
-    <div class="auth-form-container">
-      <router-outlet />
+    <!-- Background image (slow-zoom via CSS animation) -->
+    <div class="branding-bg" aria-hidden="true"></div>
+
+    <!-- Dark-to-darker gradient overlay for text legibility -->
+    <div class="branding-overlay" aria-hidden="true"></div>
+
+    <!-- Radial accent shimmer top-right -->
+    <div class="branding-shimmer" aria-hidden="true"></div>
+
+    <!-- All visible content above the layers -->
+    <div class="branding-content">
+
+      <!-- Logo lockup -->
+      <div class="brand-logo">
+        <div class="brand-icon" aria-hidden="true">
+          <mat-icon>domain</mat-icon>
+        </div>
+        <div class="brand-name">
+          BMS
+          <span>Building Management System</span>
+        </div>
+      </div>
+
+      <!-- Headline + feature pills pushed to the bottom by margin-top: auto -->
+      <div class="branding-hero">
+        <h1>Smart property<br>management,<br>simplified.</h1>
+        <p class="hero-sub">
+          Everything your team needs to manage leases, tenants,
+          invoices, and payments — in one unified platform.
+        </p>
+
+        <!-- 2-column feature pill grid -->
+        <div class="feature-grid" role="list" aria-label="Platform features">
+
+          <div class="feature-pill" role="listitem">
+            <div class="pill-icon" aria-hidden="true"><mat-icon>description</mat-icon></div>
+            <div class="pill-text">
+              <span class="pill-label">Lease Management</span>
+              <span class="pill-sub">Create, renew &amp; terminate</span>
+            </div>
+          </div>
+
+          <div class="feature-pill" role="listitem">
+            <div class="pill-icon" aria-hidden="true"><mat-icon>people</mat-icon></div>
+            <div class="pill-text">
+              <span class="pill-label">Tenant Profiles</span>
+              <span class="pill-sub">Docs, contacts &amp; history</span>
+            </div>
+          </div>
+
+          <div class="feature-pill" role="listitem">
+            <div class="pill-icon" aria-hidden="true"><mat-icon>receipt_long</mat-icon></div>
+            <div class="pill-text">
+              <span class="pill-label">Auto Invoicing</span>
+              <span class="pill-sub">Generate &amp; track payments</span>
+            </div>
+          </div>
+
+          <div class="feature-pill" role="listitem">
+            <div class="pill-icon" aria-hidden="true"><mat-icon>bar_chart</mat-icon></div>
+            <div class="pill-text">
+              <span class="pill-label">Revenue Reports</span>
+              <span class="pill-sub">Occupancy &amp; financials</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Trust line -->
+        <div class="branding-trust" aria-hidden="true">
+          <mat-icon>lock</mat-icon>
+          Role-based access &nbsp;·&nbsp; Secure JWT auth &nbsp;·&nbsp; Audit logs
+        </div>
+
+      </div><!-- /branding-hero -->
+    </div><!-- /branding-content -->
+  </aside><!-- /auth-branding -->
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- RIGHT PANEL — routed form content                                     -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <main class="auth-form-panel" role="main">
+
+    <!--
+      The seam-gradient pseudo-element is on .auth-form-panel in CSS.
+      .auth-form-inner is the scrollable, padded column that centres the card.
+    -->
+    <div class="auth-form-inner">
+
+      <!--
+        [@authRouteAnimation] fires whenever the active child route changes.
+        The host needs `position: relative` and `overflow: hidden` (set in CSS)
+        so the absolute-positioned :enter/:leave views clip correctly.
+      -->
+      <div
+        class="auth-route-host"
+        [@authRouteAnimation]="getRouteState(outlet)">
+        <router-outlet #outlet="outlet"></router-outlet>
+      </div>
+
     </div>
-  </div>
+  </main>
 
 </div>

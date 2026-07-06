@@ -1,2 +1,4 @@
-@use '../auth-shared' as auth;
-@include auth.auth-form-styles;
+@use '../auth-theme' as t;
+
+// Pull in all shared form-panel styles (header, fields, button, footer)
+@include t.auth-form-panel;

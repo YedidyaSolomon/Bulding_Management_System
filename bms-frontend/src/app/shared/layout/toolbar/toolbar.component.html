@@ -9,56 +9,72 @@
     <mat-icon>{{ sidenavCollapsed ? 'menu_open' : 'menu' }}</mat-icon>
   </button>
 
-  <!-- ── Breadcrumb / Page title (dynamic later) ──────────────── -->
+  <!-- ── App name ─────────────────────────────────────────────── -->
   <div class="toolbar-title">
     <span class="app-name">Building Management System</span>
   </div>
 
   <span class="toolbar-spacer"></span>
 
-  <!-- ── Right actions ────────────────────────────────────────── -->
+  <!-- ── Right actions — bell + profile on one aligned row ────── -->
+  <div class="toolbar-actions">
 
-  <!-- Notifications bell -->
-  <button
-    mat-icon-button
-    [routerLink]="['/notifications']"
-    [matTooltip]="'Notifications'"
-    class="toolbar-action">
-    <mat-icon
-      [matBadge]="unreadNotifications > 0 ? unreadNotifications : ''"
-      matBadgeColor="warn"
-      matBadgeSize="small">
-      notifications
-    </mat-icon>
-  </button>
+    <!-- Notifications bell -->
+    <button
+      mat-icon-button
+      [routerLink]="['/notifications']"
+      matTooltip="Notifications"
+      class="toolbar-action"
+      aria-label="View notifications">
+      <mat-icon
+        [matBadge]="unreadNotifications > 0 ? unreadNotifications : null"
+        matBadgeColor="warn"
+        matBadgeSize="small">
+        notifications
+      </mat-icon>
+    </button>
 
-  <!-- User profile menu -->
-  <button
-    mat-button
-    [matMenuTriggerFor]="profileMenu"
-    class="profile-btn"
-    *ngIf="currentUser">
-    <div class="profile-avatar">{{ getInitials(currentUser.fullName) }}</div>
-    <div class="profile-info">
-      <span class="profile-name">{{ currentUser.fullName }}</span>
-      <span class="profile-role-badge role-{{ currentUser.role.toLowerCase() }}">{{ currentUser.role }}</span>
-    </div>
-    <mat-icon class="profile-chevron">expand_more</mat-icon>
-  </button>
+    <!-- Profile trigger: avatar · name + role pill · chevron -->
+    <!-- Single wrapper div carries all flex layout so Material's internal
+         .mdc-button__label span doesn't collapse the children. -->
+    <button
+      mat-button
+      [matMenuTriggerFor]="profileMenu"
+      class="profile-btn"
+      *ngIf="currentUser"
+      [attr.aria-label]="'Profile menu for ' + currentUser.fullName">
+      <div class="profile-btn-inner">
+        <div class="profile-avatar" aria-hidden="true">{{ getInitials(currentUser.fullName) }}</div>
+        <div class="profile-info">
+          <span class="profile-name">{{ currentUser.fullName }}</span>
+          <span class="profile-role-badge role-{{ currentUser.role.toLowerCase() }}">
+            {{ currentUser.role }}
+          </span>
+        </div>
+        <mat-icon class="profile-chevron" aria-hidden="true">expand_more</mat-icon>
+      </div>
+    </button>
 
+  </div>
+
+  <!-- ── Profile dropdown ─────────────────────────────────────── -->
   <mat-menu #profileMenu="matMenu" class="profile-menu" xPosition="before">
     <div class="menu-header" *ngIf="currentUser">
-      <div class="menu-avatar">{{ getInitials(currentUser.fullName) }}</div>
+      <div class="menu-avatar" aria-hidden="true">{{ getInitials(currentUser.fullName) }}</div>
       <div class="menu-user-info">
         <div class="menu-name">{{ currentUser.fullName }}</div>
-        <span class="menu-role-badge role-{{ currentUser.role.toLowerCase() }}">{{ currentUser.role }}</span>
+        <span class="menu-role-badge role-{{ currentUser.role.toLowerCase() }}">
+          {{ currentUser.role }}
+        </span>
         <div class="menu-status">
-          <span class="menu-status-dot"></span>
+          <span class="menu-status-dot" aria-hidden="true"></span>
           Active
         </div>
       </div>
     </div>
+
     <mat-divider />
+
     <button mat-menu-item>
       <mat-icon>account_circle</mat-icon>
       <span>Profile</span>
@@ -67,7 +83,9 @@
       <mat-icon>settings</mat-icon>
       <span>Settings</span>
     </button>
+
     <mat-divider />
+
     <button mat-menu-item (click)="logout()" class="logout-item">
       <mat-icon>logout</mat-icon>
       <span>Sign out</span>

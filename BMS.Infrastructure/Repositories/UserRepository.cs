@@ -2,6 +2,7 @@ using BMS.Application.Interfaces.Repositories;
 using BMS.Infrastructure.Data;
 using BMS.Infrastructure.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace BMS.Infrastructure.Repositories;
 
@@ -30,6 +31,15 @@ public class UserRepository : IUserRepository
     {
         var user = await _userManager.FindByIdAsync(userId);
         return user is null ? null : new UserDto(user.Id, user.Email!, user.FullName, user.IsActive);
+    }
+
+    public async Task<IEnumerable<UserDto>> GetAllAsync()
+    {
+        var users = await _userManager.Users
+            .Where(u => u.IsActive)
+            .OrderBy(u => u.Email)
+            .ToListAsync();
+        return users.Select(u => new UserDto(u.Id, u.Email!, u.FullName, u.IsActive));
     }
 
     public async Task<string> CreateAsync(string fullName, string email, string password)
@@ -78,6 +88,24 @@ public class UserRepository : IUserRepository
         if (user is null) return null;
         var roles = await _userManager.GetRolesAsync(user);
         return roles.FirstOrDefault();
+    }
+
+    public async Task<int?> GetTenantIdAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        return user?.TenantId;
+    }
+
+    public async Task SetTenantIdAsync(string userId, int tenantId)
+    {
+        var user = await _userManager.FindByIdAsync(userId)
+                   ?? throw new KeyNotFoundException($"User {userId} not found.");
+
+        user.TenantId = tenantId;
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+            throw new InvalidOperationException(
+                string.Join("; ", result.Errors.Select(e => e.Description)));
     }
 
     public async Task<bool> CheckPasswordAsync(string userId, string password)

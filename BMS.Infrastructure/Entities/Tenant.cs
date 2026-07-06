@@ -5,6 +5,14 @@ namespace BMS.Infrastructure.Entities;
 public class Tenant
 {
     public int          Id                { get; set; }
+
+    /// <summary>
+    /// Links this tenant (business) to the registered AppUser account.
+    /// One user can own multiple tenants.
+    /// Required — admin must supply the registered user's email when creating a tenant.
+    /// </summary>
+    public string       UserId            { get; set; } = string.Empty;
+
     public string       OrganizationName  { get; set; } = string.Empty;
     public string       TIN               { get; set; } = string.Empty;
     public string       Phone             { get; set; } = string.Empty;
@@ -15,6 +23,8 @@ public class Tenant
 
     public DateTime  CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
+
+    public AppUser User { get; set; } = null!;
 
     public ICollection<Lease>         Leases         { get; set; } = new List<Lease>();
     public ICollection<LegalDocument> LegalDocuments { get; set; } = new List<LegalDocument>();

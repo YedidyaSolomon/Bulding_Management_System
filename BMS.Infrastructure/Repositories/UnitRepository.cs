@@ -85,6 +85,11 @@ public class UnitRepository : IUnitRepository
             ? _context.Units.AnyAsync(u => u.UnitNumber == unitNumber && u.Id != excludeId.Value)
             : _context.Units.AnyAsync(u => u.UnitNumber == unitNumber);
 
+    public Task<int> CountByFloorAsync(int floorNumber, int? excludeUnitId = null) =>
+        excludeUnitId.HasValue
+            ? _context.Units.CountAsync(u => u.FloorNumber == floorNumber && u.Id != excludeUnitId.Value)
+            : _context.Units.CountAsync(u => u.FloorNumber == floorNumber);
+
     // ── Mapping ─────────────────────────────────────────────────────────────
 
     private static UnitDto MapToDto(Unit u) => new()

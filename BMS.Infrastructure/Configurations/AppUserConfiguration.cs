@@ -23,5 +23,12 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
                .WithOne(n => n.User)
                .HasForeignKey(n => n.UserId)
                .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(u => u.Tenant)
+               .WithMany()
+               .HasForeignKey(u => u.TenantId)
+               .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasIndex(u => u.TenantId);
     }
 }

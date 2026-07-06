@@ -1,0 +1,73 @@
+<div class="invoice-card bms-card" (click)="view.emit(invoice)">
+
+  <!-- Header -->
+  <div class="card-header">
+    <div class="invoice-icon">
+      <mat-icon>receipt_long</mat-icon>
+    </div>
+    <div class="card-title-wrap">
+      <h3 class="card-title">{{ invoice.invoiceNumber }}</h3>
+      <span class="sub-line">{{ invoice.tenantName || '—' }}</span>
+    </div>
+    <span class="badge status-badge" [ngClass]="statusClass(invoice.status)">
+      {{ statusLabel(invoice.status) }}
+    </span>
+  </div>
+
+  <!-- Body -->
+  <div class="card-body">
+
+    <!-- Period + Unit row -->
+    <div class="meta-row">
+      <div class="meta-item">
+        <mat-icon class="meta-icon">calendar_month</mat-icon>
+        <span>{{ periodLabel }}</span>
+      </div>
+      <div class="meta-item">
+        <mat-icon class="meta-icon">apartment</mat-icon>
+        <span>Unit {{ invoice.unitNumber || '—' }}</span>
+      </div>
+    </div>
+
+    <!-- Amount + Due date -->
+    <div class="financial-row">
+      <div class="financial-item">
+        <span class="fin-label">Amount Due</span>
+        <span class="fin-value">{{ invoice.amountDue | etbCurrency }}</span>
+      </div>
+      <div class="fin-divider"></div>
+      <div class="financial-item">
+        <span class="fin-label">Due Date</span>
+        <span class="fin-value" [ngClass]="dueDateClass">
+          {{ invoice.dueDate | date:'mediumDate' }}
+        </span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Actions -->
+  <div class="card-actions" (click)="$event.stopPropagation()">
+    <button mat-icon-button matTooltip="View details" (click)="view.emit(invoice)">
+      <mat-icon>visibility</mat-icon>
+    </button>
+    <button mat-icon-button matTooltip="Issue invoice"
+            *ngIf="canIssue"
+            (click)="issue.emit(invoice)">
+      <mat-icon>send</mat-icon>
+    </button>
+    <button mat-icon-button matTooltip="Record payment"
+            *ngIf="canRecordPay"
+            class="pay-btn"
+            (click)="recordPayment.emit(invoice)">
+      <mat-icon>payments</mat-icon>
+    </button>
+    <button mat-icon-button matTooltip="Cancel invoice"
+            *ngIf="canCancelInv"
+            class="cancel-btn"
+            (click)="cancel.emit(invoice)">
+      <mat-icon>cancel</mat-icon>
+    </button>
+  </div>
+
+</div>

@@ -1,0 +1,219 @@
+// ── Stats strip ───────────────────────────────────────────────────────────────
+.stats-strip {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--bms-surface, #f1f5f9);
+  color: var(--bms-text-secondary);
+  border: 1px solid var(--bms-border, #e5e7eb);
+
+  mat-icon  { font-size: 16px; width: 16px; height: 16px; }
+  strong    { font-weight: 700; color: var(--bms-text-primary); }
+
+  &.active {
+    background: #f0fdf4; border-color: #bbf7d0; color: #166534;
+    mat-icon { color: #22c55e; }
+    strong   { color: #166534; }
+  }
+
+  &.warning {
+    background: #fff7ed; border-color: #fed7aa; color: #9a3412;
+    mat-icon { color: #f97316; }
+    strong   { color: #9a3412; }
+  }
+
+  &.danger {
+    background: #fef2f2; border-color: #fecaca; color: #991b1b;
+    mat-icon { color: #ef4444; }
+    strong   { color: #991b1b; }
+  }
+
+  &.neutral {
+    background: #f8fafc; border-color: #e2e8f0; color: #475569;
+    mat-icon { color: #94a3b8; }
+    strong   { color: #475569; }
+  }
+}
+
+// ── Filter bar ────────────────────────────────────────────────────────────────
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+
+  .search-field {
+    flex: 1;
+    min-width: 220px;
+  }
+
+  .filter-field {
+    width: 160px;
+
+    @media (max-width: 600px) {
+      flex: 1;
+      min-width: 130px;
+    }
+  }
+
+  .clear-btn {
+    height: 56px;
+    align-self: flex-start;
+    white-space: nowrap;
+
+    mat-icon {
+      margin-right: 4px;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+// ── Results summary ───────────────────────────────────────────────────────────
+.results-summary {
+  font-size: 13px;
+  color: var(--bms-text-secondary);
+  margin-bottom: 12px;
+}
+
+// ── Card grid ─────────────────────────────────────────────────────────────────
+.leases-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  padding: 4px 0 16px;
+}
+
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+.skeleton-card {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 230px;
+}
+
+.skeleton-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.skeleton-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.skeleton-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skeleton-title  { height: 16px; width: 110px; border-radius: 4px; }
+.skeleton-sub    { height: 12px; width: 70px;  border-radius: 4px; }
+.skeleton-badge  { height: 22px; width: 70px;  border-radius: 12px; }
+.skeleton-date-row { height: 40px; border-radius: 8px; }
+.skeleton-fin-row  { height: 50px; border-radius: 8px; }
+
+.skeleton-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: auto;
+  border-top: 1px solid var(--bms-border, #e5e7eb);
+  padding-top: 10px;
+}
+
+.skeleton-action {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+// ── Empty state ───────────────────────────────────────────────────────────────
+.empty-state-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 48px 24px;
+  background: var(--bms-card-bg, #fff);
+  border-radius: 12px;
+  border: 1px dashed var(--bms-border, #e5e7eb);
+  text-align: center;
+  min-height: 300px;
+}
+
+.empty-state-content {
+  max-width: 400px;
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--bms-text-primary);
+    margin-top: 16px;
+    margin-bottom: 8px;
+  }
+
+  p {
+    font-size: 14px;
+    color: var(--bms-text-secondary);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+}
+
+.empty-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--bms-primary-light, #e3f2fd);
+  color: var(--bms-primary, #1976d2);
+
+  mat-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+  }
+}
+
+.empty-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+
+  button mat-icon {
+    margin-right: 6px;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+// ── Responsive ────────────────────────────────────────────────────────────────
+@media (max-width: 480px) {
+  .filter-bar {
+    .search-field,
+    .filter-field { width: 100%; flex: unset; }
+  }
+}

@@ -6,6 +6,9 @@ namespace BMS.Application.Services;
 
 public class UnitService : IUnitService
 {
+    private const int MaxFloor        = 7;
+    private const int MaxUnitsPerFloor = 3;
+
     private readonly IUnitRepository _unitRepository;
 
     public UnitService(IUnitRepository unitRepository)
@@ -24,6 +27,20 @@ public class UnitService : IUnitService
 
     public async Task<UnitDto> CreateAsync(CreateUnitDto dto)
     {
+        // ── Rule 1: floor must be 1–7 ────────────────────────────────────────
+        if (dto.FloorNumber < 1 || dto.FloorNumber > MaxFloor)
+            throw new InvalidOperationException(
+                $"Invalid floor number '{dto.FloorNumber}'. " +
+                $"This building has {MaxFloor} floors (1–{MaxFloor}).");
+
+        // ── Rule 2: max 3 units per floor ────────────────────────────────────
+        var countOnFloor = await _unitRepository.CountByFloorAsync(dto.FloorNumber);
+        if (countOnFloor >= MaxUnitsPerFloor)
+            throw new InvalidOperationException(
+                $"Floor {dto.FloorNumber} already has the maximum of " +
+                $"{MaxUnitsPerFloor} units. No more units can be added to this floor.");
+
+        // ── Rule 3: unit number must be unique ───────────────────────────────
         if (await _unitRepository.IsUnitNumberTakenAsync(dto.UnitNumber))
             throw new InvalidOperationException($"Unit number '{dto.UnitNumber}' already exists.");
 
@@ -35,6 +52,20 @@ public class UnitService : IUnitService
         if (!await _unitRepository.ExistsAsync(id))
             throw new KeyNotFoundException($"Unit {id} not found.");
 
+        // ── Rule 1: floor must be 1–7 ────────────────────────────────────────
+        if (dto.FloorNumber < 1 || dto.FloorNumber > MaxFloor)
+            throw new InvalidOperationException(
+                $"Invalid floor number '{dto.FloorNumber}'. " +
+                $"This building has {MaxFloor} floors (1–{MaxFloor}).");
+
+        // ── Rule 2: max 3 units per floor (exclude the unit being moved) ─────
+        var countOnFloor = await _unitRepository.CountByFloorAsync(dto.FloorNumber, excludeUnitId: id);
+        if (countOnFloor >= MaxUnitsPerFloor)
+            throw new InvalidOperationException(
+                $"Floor {dto.FloorNumber} already has the maximum of " +
+                $"{MaxUnitsPerFloor} units. Cannot move this unit to floor {dto.FloorNumber}.");
+
+        // ── Rule 3: unit number must be unique ───────────────────────────────
         if (await _unitRepository.IsUnitNumberTakenAsync(dto.UnitNumber, excludeId: id))
             throw new InvalidOperationException($"Unit number '{dto.UnitNumber}' already exists.");
 

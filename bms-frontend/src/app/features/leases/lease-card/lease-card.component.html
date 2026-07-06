@@ -1,0 +1,66 @@
+<div class="lease-card bms-card" (click)="view.emit(lease)">
+
+  <!-- Card Header -->
+  <div class="card-header">
+    <div class="lease-icon">
+      <mat-icon>description</mat-icon>
+    </div>
+    <div class="card-title-wrap">
+      <h3 class="card-title">Unit {{ lease.unitNumber }}</h3>
+      <span class="tenant-name" [title]="lease.tenantName">{{ lease.tenantName }}</span>
+    </div>
+    <span class="badge status-badge" [ngClass]="statusClass(lease.status)">
+      {{ statusLabel(lease.status) }}
+    </span>
+  </div>
+
+  <!-- Card Body -->
+  <div class="card-body">
+
+    <!-- Date range -->
+    <div class="date-row">
+      <div class="date-block">
+        <span class="date-label">Start</span>
+        <span class="date-value">{{ lease.startDate | date:'mediumDate' }}</span>
+      </div>
+      <mat-icon class="arrow-icon">arrow_forward</mat-icon>
+      <div class="date-block">
+        <span class="date-label">End</span>
+        <span class="date-value">{{ lease.endDate | date:'mediumDate' }}</span>
+      </div>
+      <span class="days-chip" [ngClass]="daysClass">{{ daysLabel }}</span>
+    </div>
+
+    <!-- Financials -->
+    <div class="financial-row">
+      <div class="financial-item">
+        <span class="fin-label">Monthly Rent</span>
+        <span class="fin-value">{{ lease.monthlyRent | etbCurrency }}</span>
+      </div>
+      <div class="fin-divider"></div>
+      <div class="financial-item">
+        <span class="fin-label">Deposit</span>
+        <span class="fin-value">{{ lease.depositAmount | etbCurrency }}</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Card Actions -->
+  <div class="card-actions" (click)="$event.stopPropagation()">
+    <button mat-icon-button matTooltip="View details" (click)="view.emit(lease)">
+      <mat-icon>visibility</mat-icon>
+    </button>
+    <button mat-icon-button matTooltip="Edit / Renew" *ngIf="canEdit"
+            (click)="edit.emit(lease)">
+      <mat-icon>edit</mat-icon>
+    </button>
+    <button mat-icon-button matTooltip="Terminate lease"
+            *ngIf="canTerminate && isTerminable"
+            class="terminate-btn"
+            (click)="terminate.emit(lease)">
+      <mat-icon>gavel</mat-icon>
+    </button>
+  </div>
+
+</div>

@@ -1,0 +1,142 @@
+.detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 8px;
+
+  h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+  }
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pay-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #f0fdf4;
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+    color: #059669;
+  }
+}
+
+.sub-label {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: var(--bms-text-muted);
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.03em;
+}
+
+// ── Amount banner ─────────────────────────────────────────────────────────────
+.amount-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 20px 16px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border: 1px solid #bbf7d0;
+}
+
+.amount-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #166534;
+}
+
+.amount-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #059669;
+  letter-spacing: -0.02em;
+}
+
+// ── Detail grid ───────────────────────────────────────────────────────────────
+.detail-section {
+  padding: 16px 0 8px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+
+  @media (max-width: 460px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.detail-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--bms-text-muted);
+}
+
+.detail-value {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--bms-text-primary);
+}
+
+.inline-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: var(--bms-primary);
+}
+
+.ref-value {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--bms-text-secondary);
+}
+
+// ── Notes ─────────────────────────────────────────────────────────────────────
+.notes-section {
+  margin-top: 4px;
+}
+
+.notes-text {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--bms-text-secondary);
+  line-height: 1.6;
+  background: var(--bms-surface, #f8fafc);
+  border: 1px solid var(--bms-border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  white-space: pre-wrap;
+}

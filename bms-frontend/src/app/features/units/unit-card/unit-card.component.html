@@ -1,8 +1,11 @@
 <div class="unit-card bms-card">
+
+  <!-- ── Card header: icon + unit number + floor badge + status pill ── -->
   <div class="card-header">
     <div class="card-title">
-      <div class="unit-avatar">
-        <mat-icon>apartment</mat-icon>
+      <!-- Icon changes per unit type -->
+      <div class="unit-avatar unit-avatar--{{ unit.unitType.toLowerCase() }}" aria-hidden="true">
+        <mat-icon>{{ unitTypeIcon(unit.unitType) }}</mat-icon>
       </div>
       <div>
         <span class="unit-number">{{ unit.unitNumber }}</span>
@@ -14,6 +17,7 @@
     </span>
   </div>
 
+  <!-- ── Card body: detail rows ───────────────────────────────────── -->
   <div class="card-body">
     <div class="card-row">
       <span class="card-label">Type</span>
@@ -29,15 +33,39 @@
     </div>
   </div>
 
+  <!-- ── Card footer: labelled actions ───────────────────────────── -->
   <div class="card-actions">
-    <button mat-icon-button matTooltip="View details" (click)="view.emit(unit)">
-      <mat-icon>visibility</mat-icon>
+    <!-- "View details" is always visible — text + icon so it reads as clickable -->
+    <button
+      mat-button
+      class="action-btn action-btn--view"
+      (click)="view.emit(unit)"
+      matTooltip="View full details">
+      <mat-icon>chevron_right</mat-icon>
+      View details
     </button>
-    <button *ngIf="canEdit" mat-icon-button matTooltip="Edit unit" (click)="edit.emit(unit)">
-      <mat-icon>edit</mat-icon>
-    </button>
-    <button *ngIf="canDelete" mat-icon-button matTooltip="Delete unit" class="delete-btn" color="warn" (click)="delete.emit(unit)">
-      <mat-icon>delete_outline</mat-icon>
-    </button>
+
+    <div class="action-btn-right">
+      <!-- Edit — Admin / Manager only -->
+      <button
+        *ngIf="canEdit"
+        mat-icon-button
+        class="action-icon-btn"
+        (click)="edit.emit(unit)"
+        matTooltip="Edit unit">
+        <mat-icon>edit</mat-icon>
+      </button>
+
+      <!-- Delete — Admin only -->
+      <button
+        *ngIf="canDelete"
+        mat-icon-button
+        class="action-icon-btn action-icon-btn--delete"
+        (click)="delete.emit(unit)"
+        matTooltip="Delete unit">
+        <mat-icon>delete_outline</mat-icon>
+      </button>
+    </div>
   </div>
+
 </div>

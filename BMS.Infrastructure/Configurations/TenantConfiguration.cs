@@ -10,6 +10,16 @@ public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
     {
         builder.HasKey(t => t.Id);
 
+        // FK to the registered AppUser account
+        builder.Property(t => t.UserId)
+               .IsRequired()
+               .HasMaxLength(450); // Identity ID is a GUID string
+
+        builder.HasOne(t => t.User)
+               .WithMany()
+               .HasForeignKey(t => t.UserId)
+               .OnDelete(DeleteBehavior.Restrict);
+
         builder.Property(t => t.OrganizationName)
                .IsRequired()
                .HasMaxLength(200);

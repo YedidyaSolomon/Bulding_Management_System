@@ -1,0 +1,75 @@
+<div class="dialog-header">
+  <mat-icon class="dialog-icon">payments</mat-icon>
+  <div>
+    <h2 mat-dialog-title>Record Payment</h2>
+    <p>Invoice {{ data.invoice.invoiceNumber }} — {{ data.invoice.tenantName }}</p>
+  </div>
+</div>
+
+<mat-dialog-content>
+  <form [formGroup]="form" novalidate class="dialog-form">
+
+    <!-- Amount + Payment Date -->
+    <div class="form-row">
+
+      <mat-form-field appearance="outline">
+        <mat-label>Amount Paid (ETB)</mat-label>
+        <mat-icon matPrefix>payments</mat-icon>
+        <input matInput type="number" formControlName="amountPaid">
+        <mat-hint>Invoice due: {{ data.invoice.amountDue | number:'1.2-2' }} ETB</mat-hint>
+        <mat-error *ngIf="amountPaid.hasError('required')">Amount is required.</mat-error>
+        <mat-error *ngIf="amountPaid.hasError('min')">Must be greater than 0.</mat-error>
+      </mat-form-field>
+
+      <!-- Payment Date — calendar picker, max = today (no future dates) -->
+      <app-date-picker
+        formControlName="paymentDate"
+        label="Payment Date"
+        prefixIcon="event"
+        placeholder="e.g. July 5, 2026"
+        [maxDate]="maxPaymentDate"
+        hint="Cannot be a future date.">
+      </app-date-picker>
+
+    </div>
+
+    <!-- Payment method -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Payment Method</mat-label>
+      <mat-icon matPrefix>account_balance_wallet</mat-icon>
+      <mat-select formControlName="paymentMethod">
+        <mat-option *ngFor="let m of paymentMethods" [value]="m">
+          {{ methodLabel(m) }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="paymentMethod.hasError('required')">Method is required.</mat-error>
+    </mat-form-field>
+
+    <!-- Reference number -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Reference Number</mat-label>
+      <mat-icon matPrefix>tag</mat-icon>
+      <input matInput formControlName="referenceNumber" placeholder="e.g. TXN-001234">
+      <mat-hint>Optional — bank/cheque reference.</mat-hint>
+    </mat-form-field>
+
+    <!-- Notes -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Notes</mat-label>
+      <mat-icon matPrefix>notes</mat-icon>
+      <textarea matInput formControlName="notes" rows="2"
+                placeholder="Any additional notes…"></textarea>
+    </mat-form-field>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="loading">Cancel</button>
+  <button mat-raised-button color="primary" (click)="onRecord()"
+          [disabled]="loading || form.invalid">
+    <mat-spinner diameter="18" *ngIf="loading"></mat-spinner>
+    <mat-icon *ngIf="!loading">check_circle</mat-icon>
+    <span *ngIf="!loading">Record Payment</span>
+  </button>
+</mat-dialog-actions>

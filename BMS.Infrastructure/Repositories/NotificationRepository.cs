@@ -22,6 +22,12 @@ public class NotificationRepository : INotificationRepository
         return notifications.Select(MapToDto);
     }
 
+    public async Task<NotificationDto?> GetByIdAsync(int id)
+    {
+        var notification = await _context.Notifications.FindAsync(id);
+        return notification is null ? null : MapToDto(notification);
+    }
+
     public Task<int> GetUnreadCountAsync(string userId) =>
         _context.Notifications.CountAsync(n => n.UserId == userId && !n.IsRead);
 

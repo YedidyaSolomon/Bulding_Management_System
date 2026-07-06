@@ -1,0 +1,29 @@
+<div class="dialog-header">
+  <div class="warning-icon">
+    <mat-icon>person_off</mat-icon>
+  </div>
+  <div>
+    <h2 mat-dialog-title>Deactivate Tenant</h2>
+    <p>This will mark the tenant as inactive.</p>
+  </div>
+</div>
+
+<mat-dialog-content>
+  <p class="confirm-text">
+    Are you sure you want to deactivate
+    <strong>{{ data.tenant.organizationName }}</strong>?
+  </p>
+  <div class="info-note">
+    <mat-icon>info</mat-icon>
+    <span>Inactive tenants are hidden from active lease assignments. Their history is preserved and they can be reactivated by editing.</span>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="loading">Cancel</button>
+  <button mat-raised-button color="warn" (click)="onConfirm()" [disabled]="loading">
+    <mat-spinner diameter="18" *ngIf="loading" />
+    <mat-icon *ngIf="!loading">person_off</mat-icon>
+    <span *ngIf="!loading">Deactivate</span>
+  </button>
+</mat-dialog-actions>

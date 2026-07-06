@@ -1,0 +1,85 @@
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 24px 4px;
+
+  .dialog-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    color: var(--bms-primary);
+    flex-shrink: 0;
+  }
+
+  h2 {
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 600;
+    padding: 0;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--bms-text-secondary);
+  }
+}
+
+.tenant-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-top: 8px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.full-width {
+  width: 100%;
+}
+
+mat-form-field {
+  width: 100%;
+
+  mat-icon[matPrefix] {
+    color: var(--bms-text-muted);
+    margin-right: 4px;
+    font-size: 20px;
+  }
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 0 12px;
+  flex-wrap: wrap;
+
+  .toggle-hint {
+    font-size: 12px;
+    color: var(--bms-text-muted);
+  }
+}
+
+mat-dialog-content {
+  padding: 0 24px 8px !important;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+mat-dialog-actions {
+  padding: 8px 24px 20px;
+  gap: 8px;
+
+  button mat-spinner { display: inline-flex; margin-right: 6px; }
+  button mat-icon    { margin-right: 6px; font-size: 18px; width: 18px; height: 18px; }
+}

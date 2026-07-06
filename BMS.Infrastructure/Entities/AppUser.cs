@@ -21,6 +21,14 @@ public class AppUser : IdentityUser
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 
+    /// <summary>
+    /// Links a Viewer login account to their tenant record.
+    /// Null for Admin and Manager accounts.
+    /// </summary>
+    public int? TenantId { get; set; }
+
+    public Tenant? Tenant { get; set; }
+
     public ICollection<Notification> Notifications { get; set; }
        = new List<Notification>();
 }

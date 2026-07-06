@@ -1,0 +1,231 @@
+<div class="bms-page fade-in">
+
+  <!-- ── Page Header ──────────────────────────────────────────────────────── -->
+  <div class="bms-page-header">
+    <div>
+      <h1>Payments</h1>
+      <p>Track and record all lease payments.</p>
+    </div>
+
+    <!-- Primary CTA — enlarged with glow -->
+    <button
+      *ngIf="canRecord"
+      mat-raised-button
+      color="primary"
+      class="record-btn"
+      (click)="openRecord()">
+      <mat-icon>add_card</mat-icon>
+      Record Payment
+    </button>
+  </div>
+
+  <!-- ── Stats skeleton (while loading) ──────────────────────────────────── -->
+  <div class="stats-strip skeleton-stats" *ngIf="loading">
+    <div class="stat-skeleton skeleton stat-skeleton--hero"></div>
+    <div class="stat-skeleton skeleton"></div>
+    <div class="stat-skeleton skeleton"></div>
+    <div class="stat-skeleton skeleton"></div>
+  </div>
+
+  <!-- ── Stats strip ──────────────────────────────────────────────────────── -->
+  <div class="stats-strip" *ngIf="!loading">
+
+    <!-- HERO: Collected — biggest, first, most prominent -->
+    <div class="stat-card stat-card--hero">
+      <div class="stat-card-icon" aria-hidden="true">
+        <mat-icon>account_balance_wallet</mat-icon>
+      </div>
+      <div class="stat-card-body">
+        <span class="stat-card-label">Total Collected</span>
+        <span class="stat-card-value">{{ animTotalAmount | number:'1.2-2' }}&nbsp;ETB</span>
+      </div>
+    </div>
+
+    <!-- Secondary chips -->
+    <div class="stat-chip">
+      <mat-icon aria-hidden="true">receipt_long</mat-icon>
+      <div class="chip-text">
+        <span class="chip-value">{{ animTotalCount }}</span>
+        <span class="chip-label">Total</span>
+      </div>
+    </div>
+
+    <div class="stat-chip stat-chip--today" *ngIf="todayAmount > 0">
+      <mat-icon aria-hidden="true">today</mat-icon>
+      <div class="chip-text">
+        <span class="chip-value">{{ animTodayAmount | number:'1.2-2' }}</span>
+        <span class="chip-label">Today (ETB)</span>
+      </div>
+    </div>
+
+    <div class="stat-chip stat-chip--cash" *ngIf="cashCount > 0">
+      <mat-icon aria-hidden="true">payments</mat-icon>
+      <div class="chip-text">
+        <span class="chip-value">{{ animCashCount }}</span>
+        <span class="chip-label">Cash</span>
+      </div>
+    </div>
+
+    <div class="stat-chip stat-chip--transfer" *ngIf="transferCount > 0">
+      <mat-icon aria-hidden="true">account_balance</mat-icon>
+      <div class="chip-text">
+        <span class="chip-value">{{ animTransferCount }}</span>
+        <span class="chip-label">Transfer</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Filter bar ───────────────────────────────────────────────────────── -->
+  <div class="filter-bar">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">
+      <mat-label>Search payments</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [formControl]="searchControl" placeholder="Invoice # or reference…">
+      <button *ngIf="searchControl.value" mat-icon-button matSuffix
+              (click)="searchControl.setValue('')" matTooltip="Clear">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="filter-field">
+      <mat-label>Method</mat-label>
+      <mat-select [formControl]="methodFilter">
+        <mat-option value="all">All Methods</mat-option>
+        <mat-option *ngFor="let m of paymentMethods" [value]="m">
+          {{ methodLabel(m) }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button *ngIf="hasActiveFilters" mat-stroked-button class="clear-btn"
+            (click)="clearFilters()" matTooltip="Clear filters">
+      <mat-icon>filter_alt_off</mat-icon>
+      Clear
+    </button>
+  </div>
+
+  <!-- ── Results count ────────────────────────────────────────────────────── -->
+  <div class="results-summary" *ngIf="!loading">
+    <span class="results-count"><strong>{{ totalCount }}</strong> payment{{ totalCount !== 1 ? 's' : '' }} found</span>
+  </div>
+
+  <!-- ── Table skeleton (while loading) ──────────────────────────────────── -->
+  <div class="table-card bms-card skeleton-table" *ngIf="loading">
+    <!-- Header placeholder -->
+    <div class="skel-header">
+      <div class="skel-cell skeleton" style="width:90px"></div>
+      <div class="skel-cell skeleton" style="width:140px"></div>
+      <div class="skel-cell skeleton" style="width:110px"></div>
+      <div class="skel-cell skeleton" style="width:100px"></div>
+      <div class="skel-cell skeleton" style="width:80px"></div>
+    </div>
+    <!-- Row placeholders -->
+    <div class="skel-row" *ngFor="let r of skeletonRows">
+      <div class="skel-cell skeleton" style="width:80px; height:13px"></div>
+      <div class="skel-cell skeleton" style="width:130px; height:20px; border-radius:10px"></div>
+      <div class="skel-cell skeleton" style="width:100px; height:13px"></div>
+      <div class="skel-cell skeleton" style="width:90px; height:14px"></div>
+      <div class="skel-cell skeleton" style="width:70px; height:13px"></div>
+    </div>
+  </div>
+
+  <!-- ── Table ────────────────────────────────────────────────────────────── -->
+  <div class="table-card bms-card" *ngIf="!loading">
+
+    <table mat-table [dataSource]="dataSource" matSort
+           (matSortChange)="onSortChange($event)"
+           class="payments-table">
+
+      <!-- Date column -->
+      <ng-container matColumnDef="paymentDate">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+        <td mat-cell *matCellDef="let p">
+          <span class="date-cell">{{ p.paymentDate | date:'mediumDate' }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Invoice column -->
+      <ng-container matColumnDef="invoiceNumber">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Invoice</th>
+        <td mat-cell *matCellDef="let p">
+          <!-- Softened pill — monospace kept, border/bg lightened -->
+          <span class="invoice-pill">{{ p.invoiceNumber }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Method column -->
+      <ng-container matColumnDef="paymentMethod">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Method</th>
+        <td mat-cell *matCellDef="let p">
+          <div class="method-cell" [ngClass]="methodColorClass(p.paymentMethod)">
+            <div class="method-icon-wrap" aria-hidden="true">
+              <mat-icon>{{ methodIcon(p.paymentMethod) }}</mat-icon>
+            </div>
+            <span>{{ methodLabel(p.paymentMethod) }}</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Amount column -->
+      <ng-container matColumnDef="amountPaid">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Amount</th>
+        <td mat-cell *matCellDef="let p">
+          <span class="amount-cell">{{ p.amountPaid | etbCurrency }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Reference column -->
+      <ng-container matColumnDef="referenceNumber">
+        <th mat-header-cell *matHeaderCellDef>Reference</th>
+        <td mat-cell *matCellDef="let p">
+          <span class="ref-cell">{{ p.referenceNumber || '—' }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Actions column — labelled ghost button -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="actions-header"></th>
+        <td mat-cell *matCellDef="let p" class="actions-cell">
+          <button
+            mat-button
+            class="view-btn"
+            (click)="$event.stopPropagation(); openDetail(p)"
+            matTooltip="View payment details">
+            <mat-icon>chevron_right</mat-icon>
+            View
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+          class="clickable-row" (click)="openDetail(row)"></tr>
+
+      <!-- Empty row -->
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell no-data-cell" [attr.colspan]="displayedColumns.length">
+          <div class="empty-state">
+            <mat-icon>payments</mat-icon>
+            <h3>No payments found</h3>
+            <p *ngIf="hasActiveFilters">Try adjusting your search or clearing the filters.</p>
+            <p *ngIf="!hasActiveFilters">No payments have been recorded yet.</p>
+          </div>
+        </td>
+      </tr>
+
+    </table>
+  </div>
+
+  <!-- ── Paginator ────────────────────────────────────────────────────────── -->
+  <mat-paginator
+    *ngIf="totalCount > pageSize || totalCount > 5"
+    [length]="totalCount"
+    [pageSize]="pageSize"
+    [pageIndex]="pageIndex"
+    [pageSizeOptions]="pageSizeOptions"
+    (page)="onPageChange($event)"
+    showFirstLastButtons>
+  </mat-paginator>
+
+</div>

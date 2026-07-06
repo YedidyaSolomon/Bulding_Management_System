@@ -1,0 +1,118 @@
+<div class="bms-page fade-in">
+
+  <!-- ── Page Header ──────────────────────────────────────────────────────── -->
+  <div class="bms-page-header">
+    <div>
+      <h1>Notifications</h1>
+      <p>Stay on top of payments, leases, and document alerts.</p>
+    </div>
+    <button
+      mat-raised-button color="primary"
+      *ngIf="hasUnread"
+      [disabled]="markingAll"
+      (click)="onMarkAllAsRead()">
+      <mat-spinner diameter="18" *ngIf="markingAll"></mat-spinner>
+      <mat-icon *ngIf="!markingAll">done_all</mat-icon>
+      <span *ngIf="!markingAll">Mark All Read</span>
+    </button>
+  </div>
+
+  <!-- ── Stats strip ──────────────────────────────────────────────────────── -->
+  <div class="stats-strip" *ngIf="!loading">
+    <div class="stat-chip">
+      <mat-icon>notifications</mat-icon>
+      <span><strong>{{ totalCount }}</strong> Total</span>
+    </div>
+    <div class="stat-chip unread" *ngIf="unreadCount > 0">
+      <mat-icon>mark_email_unread</mat-icon>
+      <span><strong>{{ unreadCount }}</strong> Unread</span>
+    </div>
+    <div class="stat-chip read" *ngIf="readCount > 0">
+      <mat-icon>done_all</mat-icon>
+      <span><strong>{{ readCount }}</strong> Read</span>
+    </div>
+  </div>
+
+  <!-- ── Filter bar ────────────────────────────────────────────────────────── -->
+  <div class="filter-bar">
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Filter by type</mat-label>
+      <mat-select [formControl]="typeFilter">
+        <mat-option value="all">All Types</mat-option>
+        <mat-option *ngFor="let t of notificationTypes" [value]="t">
+          {{ typeLabel(t) }}
+        </mat-option>
+      </mat-select>
+      <mat-icon matPrefix>filter_list</mat-icon>
+    </mat-form-field>
+
+    <button *ngIf="hasActiveFilter" mat-stroked-button class="clear-btn"
+            (click)="clearFilter()" matTooltip="Clear filter">
+      <mat-icon>filter_alt_off</mat-icon>
+      Clear
+    </button>
+  </div>
+
+  <!-- ── Loading ───────────────────────────────────────────────────────────── -->
+  <div class="loading-overlay" *ngIf="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <!-- ── Notification list ─────────────────────────────────────────────────── -->
+  <div class="notification-list bms-card" *ngIf="!loading && filteredNotifications.length > 0" [@listAnimation]="filteredNotifications.length">
+    <ng-container *ngFor="let n of filteredNotifications; let last = last">
+      <div
+        class="notification-row"
+        [class.unread]="!n.isRead"
+        [class.has-deeplink]="!!navTooltip(n.notificationType)"
+        (click)="onCardClick(n)"
+        [matTooltip]="n.isRead ? navTooltip(n.notificationType) : ('Click to mark as read' + (navTooltip(n.notificationType) ? ' and ' + navTooltip(n.notificationType).toLowerCase() : ''))">
+
+        <!-- Type icon -->
+        <div class="notif-icon-wrap" [ngClass]="typeClass(n.notificationType)">
+          <mat-icon>{{ typeIcon(n.notificationType) }}</mat-icon>
+        </div>
+
+        <!-- Content -->
+        <div class="notif-content">
+          <div class="notif-header-row">
+            <span class="notif-title">{{ n.title }}</span>
+            <div class="notif-meta">
+              <span class="notif-type-badge" [ngClass]="typeClass(n.notificationType)">
+                {{ typeLabel(n.notificationType) }}
+              </span>
+              <span class="notif-time">{{ timeAgo(n.createdAt) }}</span>
+            </div>
+          </div>
+          <p class="notif-message">{{ n.message }}</p>
+          <!-- Deep-link hint -->
+          <div class="notif-nav-hint" *ngIf="navTooltip(n.notificationType)">
+            <mat-icon>arrow_forward</mat-icon>
+            <span>{{ navTooltip(n.notificationType) }}</span>
+          </div>
+        </div>
+
+        <!-- Unread dot -->
+        <div class="unread-dot" *ngIf="!n.isRead" matTooltip="Unread"></div>
+
+      </div>
+      <mat-divider *ngIf="!last"></mat-divider>
+    </ng-container>
+  </div>
+
+  <!-- ── Empty state ───────────────────────────────────────────────────────── -->
+  <div class="empty-state-container" *ngIf="!loading && filteredNotifications.length === 0">
+    <div class="empty-state-content">
+      <div class="empty-icon-wrapper">
+        <mat-icon>notifications_off</mat-icon>
+      </div>
+      <h3>No notifications</h3>
+      <p *ngIf="hasActiveFilter">No notifications match the selected filter.</p>
+      <p *ngIf="!hasActiveFilter">You're all caught up — no notifications yet.</p>
+      <button mat-stroked-button *ngIf="hasActiveFilter" (click)="clearFilter()">
+        <mat-icon>filter_alt_off</mat-icon> Clear Filter
+      </button>
+    </div>
+  </div>
+
+</div>

@@ -47,6 +47,7 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IInvoiceRepository,      InvoiceRepository>();
         services.AddScoped<IPaymentRepository,      PaymentRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<IDocumentRepository,     DocumentRepository>();
 
         return services;
     }

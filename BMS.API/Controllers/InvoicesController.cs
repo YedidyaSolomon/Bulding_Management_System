@@ -3,6 +3,7 @@ using BMS.Application.DTOs.Invoices;
 using BMS.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BMS.API.Controllers;
 
@@ -15,12 +16,25 @@ public class InvoicesController : ControllerBase
 
     public InvoicesController(IInvoiceService invoiceService) => _invoiceService = invoiceService;
 
-    /// <summary>GET /api/invoices</summary>
+    /// <summary>GET /api/invoices — Admin/Manager: all invoices</summary>
     [HttpGet]
+    [Authorize(Roles = "Admin,Manager")]
     [ProducesResponseType(typeof(ApiResponse<IEnumerable<InvoiceDto>>), 200)]
     public async Task<IActionResult> GetAll()
     {
         var invoices = await _invoiceService.GetAllAsync();
+        return Ok(ApiResponse<IEnumerable<InvoiceDto>>.Ok(invoices));
+    }
+
+    /// <summary>GET /api/invoices/mine — all roles: only invoices for the calling user's tenants</summary>
+    [HttpGet("mine")]
+    [ProducesResponseType(typeof(ApiResponse<IEnumerable<InvoiceDto>>), 200)]
+    public async Task<IActionResult> GetMine()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                     ?? throw new UnauthorizedAccessException("User ID not found in token.");
+
+        var invoices = await _invoiceService.GetByUserIdAsync(userId);
         return Ok(ApiResponse<IEnumerable<InvoiceDto>>.Ok(invoices));
     }
 
@@ -63,7 +77,7 @@ public class InvoicesController : ControllerBase
         return StatusCode(201, ApiResponse<InvoiceDto>.Ok(invoice, "Invoice generated successfully."));
     }
 
-    /// <summary>PUT /api/invoices/{id}/issue — change status from Draft → Issued</summary>
+    /// <summary>PUT /api/invoices/{id}/issue — Draft → Issued</summary>
     [HttpPut("{id:int}/issue")]
     [Authorize(Roles = "Admin,Manager")]
     [ProducesResponseType(typeof(ApiResponse<InvoiceDto>), 200)]

@@ -39,9 +39,11 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
 export class RegisterComponent implements OnInit {
 
   form!: FormGroup;
-  loading = false;
+  loading      = false;
   hidePassword = true;
   hideConfirm  = true;
+  /** Triggers the CSS shake animation on invalid submit. */
+  formShake = false;
 
   constructor(
     private fb: FormBuilder,
@@ -74,6 +76,7 @@ export class RegisterComponent implements OnInit {
   onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.triggerShake();
       return;
     }
 
@@ -97,12 +100,14 @@ export class RegisterComponent implements OnInit {
             );
             this.router.navigate(['/auth/login']);
           } else {
+            this.triggerShake();
             this.snackBar.open(response.message ?? 'Registration failed.', 'Dismiss', {
               duration: 5000, panelClass: ['snack-error']
             });
           }
         },
         error: (err: HttpErrorResponse) => {
+          this.triggerShake();
           const errors = err.error?.errors as string[] | null;
           const msg = errors?.join(' ') ?? err.error?.message ?? 'Registration failed. Please try again.';
           this.snackBar.open(msg, 'Dismiss', {
@@ -110,5 +115,10 @@ export class RegisterComponent implements OnInit {
           });
         }
       });
+  }
+
+  private triggerShake(): void {
+    this.formShake = true;
+    setTimeout(() => (this.formShake = false), 500);
   }
 }

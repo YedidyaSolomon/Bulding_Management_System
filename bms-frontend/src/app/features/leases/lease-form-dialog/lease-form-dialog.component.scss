@@ -1,0 +1,221 @@
+// ── Dialog header ─────────────────────────────────────────────────────────────
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 24px 4px;
+
+  .dialog-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    color: var(--bms-primary);
+    flex-shrink: 0;
+  }
+
+  h2 {
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 600;
+    padding: 0;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--bms-text-secondary);
+  }
+}
+
+// ── Loading row ───────────────────────────────────────────────────────────────
+.loading-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 0 12px;
+  font-size: 13px;
+  color: var(--bms-text-secondary);
+}
+
+// ── Form layout ───────────────────────────────────────────────────────────────
+.lease-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+mat-form-field {
+  width: 100%;
+
+  mat-icon[matPrefix] {
+    color: var(--bms-text-muted);
+    margin-right: 4px;
+    font-size: 20px;
+  }
+}
+
+mat-dialog-content {
+  padding: 0 24px 8px !important;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+mat-dialog-actions {
+  padding: 8px 24px 20px;
+  gap: 8px;
+
+  button mat-spinner { display: inline-flex; margin-right: 6px; }
+  button mat-icon    { margin-right: 6px; font-size: 18px; width: 18px; height: 18px; }
+}
+
+// ── Date picker toggle icon ───────────────────────────────────────────────────
+// Make the calendar toggle button use the primary colour on hover
+.mat-mdc-icon-button.mat-datepicker-toggle-active {
+  color: var(--bms-primary) !important;
+}
+
+// ── Inline validation error icon ─────────────────────────────────────────────
+// Small icon sits beside the error text — keeps the line-height intact
+.inline-err-icon {
+  font-size: 14px !important;
+  width: 14px !important;
+  height: 14px !important;
+  vertical-align: middle;
+  margin-right: 3px;
+  margin-top: -2px;    // optically align with the text baseline
+}
+
+// ── Date guidance hint ────────────────────────────────────────────────────────
+.date-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -4px 0 8px;
+  font-size: 12px;
+  color: var(--bms-text-muted);
+  line-height: 1.5;
+
+  mat-icon {
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    color: var(--bms-text-muted);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Calendar popup theming
+// mat-datepicker renders in an overlay (outside the component host), so these
+// rules must escape view encapsulation via ::ng-deep.
+// All selectors are scoped to .mat-datepicker-content so they don't leak.
+// ─────────────────────────────────────────────────────────────────────────────
+::ng-deep {
+
+  // ── Panel shell ────────────────────────────────────────────────────────────
+  .mat-datepicker-content {
+    border-radius: 14px !important;
+    box-shadow:
+      0 8px 30px rgba(15, 23, 42, 0.14),
+      0 2px 8px  rgba(15, 23, 42, 0.08) !important;
+    border: 1px solid var(--bms-border, #e2e8f0) !important;
+    overflow: hidden;
+  }
+
+  // ── Calendar header (month/year + nav arrows) ───────────────────────────
+  .mat-datepicker-content .mat-calendar-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 12px 8px 8px;
+  }
+
+  // Month/year label button
+  .mat-datepicker-content .mat-calendar-period-button {
+    color: #fff !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15) !important;
+    }
+  }
+
+  // Prev / next arrow buttons
+  .mat-datepicker-content .mat-calendar-previous-button,
+  .mat-datepicker-content .mat-calendar-next-button {
+    color: rgba(255, 255, 255, 0.9) !important;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.18) !important;
+    }
+  }
+
+  // ── Day-of-week row ─────────────────────────────────────────────────────
+  .mat-datepicker-content .mat-calendar-table-header th {
+    color: var(--bms-text-muted, #94a3b8);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  // ── Individual day cells ────────────────────────────────────────────────
+  .mat-datepicker-content .mat-calendar-body-cell-content {
+    border-radius: 8px !important;   // rounded square, not full circle
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+
+  // Hover state — unselected days
+  .mat-datepicker-content
+  .mat-calendar-body-cell:not(.mat-calendar-body-disabled):hover
+  .mat-calendar-body-cell-content:not(.mat-calendar-body-selected) {
+    background: rgba(102, 126, 234, 0.12) !important;
+    color: var(--bms-primary, #2563eb) !important;
+  }
+
+  // Today — subtle brand-colour outline, no fill
+  .mat-datepicker-content .mat-calendar-body-today:not(.mat-calendar-body-selected) {
+    border: 2px solid var(--bms-primary, #2563eb) !important;
+    background: transparent !important;
+    color: var(--bms-primary, #2563eb) !important;
+    font-weight: 700;
+  }
+
+  // Selected day — brand gradient fill
+  .mat-datepicker-content .mat-calendar-body-selected {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: #fff !important;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+  }
+
+  // Disabled (past) days — clearly greyed out, not clickable
+  .mat-datepicker-content .mat-calendar-body-disabled
+  .mat-calendar-body-cell-content {
+    color: var(--bms-text-muted, #94a3b8) !important;
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  // ── Month / year selection view ─────────────────────────────────────────
+  .mat-datepicker-content .mat-calendar-body-label {
+    color: var(--bms-text-secondary, #64748b);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}

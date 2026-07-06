@@ -1,18 +1,52 @@
-@use '../auth-shared' as auth;
+@use '../auth-theme' as t;
 
+// All shared form-panel styles: header, fields, button, footer
+@include t.auth-form-panel;
+
+// ── Session-expired notice ────────────────────────────────────────────────────
 .session-notice {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #FEF3C7;
-  border: 1px solid #FCD34D;
-  border-radius: 8px;
-  padding: 10px 14px;
-  margin-bottom: 20px;
-  font-size: 13px;
-  color: #92400E;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 24px;
+  border-radius: t.$auth-radius-md;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  animation: auth-fade-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 
-  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  .notice-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 8px;
+    background: #fef3c7;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: #d97706;
+    }
+  }
+
+  .notice-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    strong {
+      font-size: 13px;
+      font-weight: 700;
+      color: #92400e;
+    }
+
+    span {
+      font-size: 12px;
+      color: #b45309;
+    }
+  }
 }
-
-@include auth.auth-form-styles;

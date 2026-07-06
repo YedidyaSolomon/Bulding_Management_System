@@ -34,9 +34,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 export class LoginComponent implements OnInit {
 
   form!: FormGroup;
-  loading = false;
+  loading      = false;
   hidePassword = true;
   sessionExpired = false;
+  /** Triggers the CSS shake animation on invalid submit. */
+  formShake = false;
 
   constructor(
     private fb: FormBuilder,
@@ -64,6 +66,7 @@ export class LoginComponent implements OnInit {
   onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.triggerShake();
       return;
     }
 
@@ -77,6 +80,7 @@ export class LoginComponent implements OnInit {
             const returnUrl = this.route.snapshot.queryParams['returnUrl'] ?? '/dashboard';
             this.router.navigateByUrl(returnUrl);
           } else {
+            this.triggerShake();
             this.snackBar.open(response.message ?? 'Login failed.', 'Dismiss', {
               duration: 4000,
               panelClass: ['snack-error']
@@ -84,6 +88,7 @@ export class LoginComponent implements OnInit {
           }
         },
         error: (err: HttpErrorResponse) => {
+          this.triggerShake();
           const msg = err.error?.message ?? 'Invalid email or password.';
           this.snackBar.open(msg, 'Dismiss', {
             duration: 5000,
@@ -91,5 +96,10 @@ export class LoginComponent implements OnInit {
           });
         }
       });
+  }
+
+  private triggerShake(): void {
+    this.formShake = true;
+    setTimeout(() => (this.formShake = false), 500);
   }
 }

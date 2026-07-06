@@ -1,0 +1,174 @@
+<div class="bms-page fade-in">
+
+  <!-- ── Page Header ──────────────────────────────────────────────────────── -->
+  <div class="bms-page-header">
+    <div>
+      <h1>Leases</h1>
+      <p>Manage lease agreements between units and tenants.</p>
+    </div>
+    <button
+      *ngIf="canCreate"
+      mat-raised-button
+      color="primary"
+      (click)="openCreate()">
+      <mat-icon>post_add</mat-icon>
+      New Lease
+    </button>
+  </div>
+
+  <!-- ── Stats strip ──────────────────────────────────────────────────────── -->
+  <div class="stats-strip" *ngIf="!loading">
+    <div class="stat-chip">
+      <mat-icon>description</mat-icon>
+      <span><strong>{{ allLeases.length }}</strong> Total</span>
+    </div>
+    <div class="stat-chip active">
+      <mat-icon>check_circle</mat-icon>
+      <span><strong>{{ activeCount }}</strong> Active</span>
+    </div>
+    <div class="stat-chip warning" *ngIf="pendingRenewalCount > 0">
+      <mat-icon>autorenew</mat-icon>
+      <span><strong>{{ pendingRenewalCount }}</strong> Pending Renewal</span>
+    </div>
+    <div class="stat-chip danger" *ngIf="expiringIn30 > 0">
+      <mat-icon>schedule</mat-icon>
+      <span><strong>{{ expiringIn30 }}</strong> Expiring in 30 days</span>
+    </div>
+    <div class="stat-chip neutral">
+      <mat-icon>history</mat-icon>
+      <span><strong>{{ expiredCount + terminatedCount }}</strong> Closed</span>
+    </div>
+  </div>
+
+  <!-- ── Filter bar ───────────────────────────────────────────────────────── -->
+  <div class="filter-bar">
+
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search leases</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [formControl]="searchControl"
+             placeholder="Unit number or tenant name…">
+      <button
+        *ngIf="searchControl.value"
+        mat-icon-button matSuffix
+        (click)="searchControl.setValue('')"
+        matTooltip="Clear search">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Status</mat-label>
+      <mat-select [formControl]="statusFilter">
+        <mat-option value="all">All</mat-option>
+        <mat-option *ngFor="let s of leaseStatuses" [value]="s">
+          {{ statusLabel(s) }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Sort By</mat-label>
+      <mat-select [formControl]="sortControl">
+        <mat-option value="startDate-desc">Newest First</mat-option>
+        <mat-option value="startDate-asc">Oldest First</mat-option>
+        <mat-option value="endDate-asc">Ending Soonest</mat-option>
+        <mat-option value="endDate-desc">Ending Latest</mat-option>
+        <mat-option value="monthlyRent-desc">Rent: High → Low</mat-option>
+        <mat-option value="monthlyRent-asc">Rent: Low → High</mat-option>
+        <mat-option value="tenant-asc">Tenant A → Z</mat-option>
+        <mat-option value="unit-asc">Unit A → Z</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button
+      *ngIf="hasActiveFilters"
+      mat-stroked-button
+      class="clear-btn"
+      (click)="clearFilters()"
+      matTooltip="Clear all filters">
+      <mat-icon>filter_alt_off</mat-icon>
+      Clear
+    </button>
+
+  </div>
+
+  <!-- ── Results count ────────────────────────────────────────────────────── -->
+  <div class="results-summary" *ngIf="!loading">
+    {{ totalCount }} lease{{ totalCount !== 1 ? 's' : '' }} found
+  </div>
+
+  <!-- ── Skeleton grid ────────────────────────────────────────────────────── -->
+  <div class="leases-grid" *ngIf="loading">
+    <div class="bms-card skeleton-card" *ngFor="let i of [1,2,3,4,5,6,7,8,9,10,11,12]">
+      <div class="skeleton-header">
+        <div class="skeleton skeleton-icon-box"></div>
+        <div class="skeleton-lines">
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton skeleton-sub"></div>
+        </div>
+        <div class="skeleton skeleton-badge"></div>
+      </div>
+      <div class="skeleton skeleton-date-row"></div>
+      <div class="skeleton skeleton-fin-row"></div>
+      <div class="skeleton-footer">
+        <div class="skeleton skeleton-action"></div>
+        <div class="skeleton skeleton-action"></div>
+        <div class="skeleton skeleton-action"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Lease card grid ──────────────────────────────────────────────────── -->
+  <div class="leases-grid" *ngIf="!loading && displayedLeases.length > 0">
+    <app-lease-card
+      *ngFor="let lease of displayedLeases"
+      [lease]="lease"
+      [canEdit]="canEdit"
+      [canTerminate]="canTerminate"
+      (view)="openDetail($event)"
+      (edit)="openEdit($event)"
+      (terminate)="openTerminate($event)">
+    </app-lease-card>
+  </div>
+
+  <!-- ── Empty state ──────────────────────────────────────────────────────── -->
+  <div class="empty-state-container" *ngIf="!loading && displayedLeases.length === 0">
+    <div class="empty-state-content">
+      <div class="empty-icon-wrapper">
+        <mat-icon>description</mat-icon>
+      </div>
+      <h3>No leases found</h3>
+      <p *ngIf="hasActiveFilters">
+        No leases match your current filters. Try adjusting your search or clearing the filters.
+      </p>
+      <p *ngIf="!hasActiveFilters">
+        No lease agreements have been created yet. Start by creating the first lease.
+      </p>
+      <div class="empty-actions">
+        <button mat-stroked-button *ngIf="hasActiveFilters" (click)="clearFilters()">
+          <mat-icon>filter_alt_off</mat-icon>
+          Clear Filters
+        </button>
+        <button mat-raised-button color="primary"
+                *ngIf="canCreate && !hasActiveFilters"
+                (click)="openCreate()">
+          <mat-icon>post_add</mat-icon>
+          New Lease
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Paginator ────────────────────────────────────────────────────────── -->
+  <mat-paginator
+    *ngIf="totalCount > pageSize || totalCount > 6"
+    [length]="totalCount"
+    [pageSize]="pageSize"
+    [pageIndex]="pageIndex"
+    [pageSizeOptions]="pageSizeOptions"
+    (page)="onPageChange($event)"
+    showFirstLastButtons>
+  </mat-paginator>
+
+</div>

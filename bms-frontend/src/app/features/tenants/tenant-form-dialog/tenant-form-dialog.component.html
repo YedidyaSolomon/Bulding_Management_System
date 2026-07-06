@@ -1,0 +1,109 @@
+<div class="dialog-header">
+  <mat-icon class="dialog-icon">{{ isEdit ? 'edit' : 'person_add' }}</mat-icon>
+  <div>
+    <h2 mat-dialog-title>{{ isEdit ? 'Edit Tenant' : 'Register Tenant' }}</h2>
+    <p>{{ isEdit ? 'Update the tenant details below.' : 'Fill in the details to register a new tenant.' }}</p>
+  </div>
+</div>
+
+<mat-dialog-content>
+  <form [formGroup]="form" novalidate class="tenant-form">
+
+    <!-- Linked User Account — create mode only -->
+    <mat-form-field *ngIf="!isEdit" appearance="outline" class="full-width">
+      <mat-label>Linked User Account</mat-label>
+      <input
+        matInput
+        formControlName="userEmail"
+        placeholder="Search by email or name…"
+        [matAutocomplete]="userAuto"
+        type="email">
+      <mat-icon matPrefix>manage_accounts</mat-icon>
+      <mat-autocomplete #userAuto="matAutocomplete">
+        <mat-option *ngFor="let u of filteredUsers" [value]="u.email">
+          <span class="user-option-email">{{ u.email }}</span>
+          <span class="user-option-name">&nbsp;— {{ u.fullName }}</span>
+        </mat-option>
+      </mat-autocomplete>
+      <mat-hint>Must be a registered user account. Determines who can view this tenant.</mat-hint>
+      <mat-error *ngIf="userEmail.hasError('required')">User account is required.</mat-error>
+      <mat-error *ngIf="userEmail.hasError('email')">Enter a valid email address.</mat-error>
+    </mat-form-field>
+
+    <!-- Row 1: Organization Name -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Organization Name</mat-label>
+      <input matInput formControlName="organizationName" placeholder="e.g. Sunrise Trading PLC">
+      <mat-icon matPrefix>business</mat-icon>
+      <mat-error *ngIf="organizationName.hasError('required')">Organization name is required.</mat-error>
+      <mat-error *ngIf="organizationName.hasError('maxlength')">Max 150 characters.</mat-error>
+    </mat-form-field>
+
+    <!-- Row 2: TIN + Phone -->
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>TIN (Tax ID)</mat-label>
+        <input matInput formControlName="tin" placeholder="e.g. 0001234567">
+        <mat-icon matPrefix>receipt</mat-icon>
+        <mat-error *ngIf="tin.hasError('required')">TIN is required.</mat-error>
+        <mat-error *ngIf="tin.hasError('maxlength')">Max 30 characters.</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Phone</mat-label>
+        <input matInput formControlName="phone" placeholder="e.g. +251 91 123 4567">
+        <mat-icon matPrefix>phone</mat-icon>
+        <mat-error *ngIf="phone.hasError('required')">Phone number is required.</mat-error>
+        <mat-error *ngIf="phone.hasError('maxlength')">Max 20 characters.</mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Row 3: Business Type -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Business Type</mat-label>
+      <mat-select formControlName="businessType">
+        <mat-option *ngFor="let bt of businessTypes" [value]="bt">{{ bt }}</mat-option>
+      </mat-select>
+      <mat-icon matPrefix>store</mat-icon>
+      <mat-error *ngIf="businessType.hasError('required')">Business type is required.</mat-error>
+    </mat-form-field>
+
+    <!-- Row 4: Contact Person + Email -->
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Contact Person</mat-label>
+        <input matInput formControlName="contactPersonName" placeholder="e.g. Abebe Girma">
+        <mat-icon matPrefix>person</mat-icon>
+        <mat-error *ngIf="contactPersonName.hasError('required')">Contact name is required.</mat-error>
+        <mat-error *ngIf="contactPersonName.hasError('maxlength')">Max 100 characters.</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Contact Email</mat-label>
+        <input matInput formControlName="contactEmail" placeholder="e.g. abebe@sunrise.et" type="email">
+        <mat-icon matPrefix>email</mat-icon>
+        <mat-error *ngIf="contactEmail.hasError('required')">Email is required.</mat-error>
+        <mat-error *ngIf="contactEmail.hasError('email')">Enter a valid email address.</mat-error>
+        <mat-error *ngIf="contactEmail.hasError('maxlength')">Max 150 characters.</mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Active toggle — edit only -->
+    <div class="toggle-row" *ngIf="isEdit">
+      <mat-slide-toggle formControlName="isActive" color="primary">
+        Tenant is Active
+      </mat-slide-toggle>
+      <span class="toggle-hint">Inactive tenants cannot be assigned to new leases.</span>
+    </div>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="loading">Cancel</button>
+  <button mat-raised-button color="primary" (click)="onSave()" [disabled]="loading">
+    <mat-spinner diameter="18" *ngIf="loading" />
+    <mat-icon *ngIf="!loading">{{ isEdit ? 'save' : 'person_add' }}</mat-icon>
+    <span *ngIf="!loading">{{ isEdit ? 'Save Changes' : 'Register Tenant' }}</span>
+  </button>
+</mat-dialog-actions>

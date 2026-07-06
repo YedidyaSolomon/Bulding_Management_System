@@ -50,7 +50,7 @@ html {
   --bms-success:        #10B981;
   --bms-warning:        #F59E0B;
 
-  --bms-bg:             #F8FAFC;
+  --bms-bg:             #F1F0F9;   // soft indigo-tinted off-white
   --bms-bg-card:        #ffffff;
   --bms-bg-sidebar:     #1E293B;
   --bms-bg-toolbar:     #ffffff;
@@ -120,7 +120,7 @@ html, body {
 }
 
 .mat-mdc-row:hover {
-  background: #F8FAFC !important;
+  background: var(--bms-bg) !important;
 }
 
 .mat-mdc-snack-bar-container.snack-error .mdc-snackbar__surface {
@@ -208,9 +208,8 @@ html, body {
   &.badge-danger   { background: #FEE2E2; color: #991B1B; }
   &.badge-info     { background: #DBEAFE; color: #1E40AF; }
   &.badge-neutral  { background: #F1F5F9; color: #475569; }
+  &.badge-reserved { background: rgba(124, 58, 237, 0.10); color: #6d28d9; }
 }
-
-// Loading overlay
 .loading-overlay {
   display: flex;
   align-items: center;

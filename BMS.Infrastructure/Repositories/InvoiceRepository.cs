@@ -36,6 +36,36 @@ public class InvoiceRepository : IInvoiceRepository
         return invoices.Select(MapToDto);
     }
 
+    public async Task<IEnumerable<InvoiceDto>> GetByUserIdAsync(string userId)
+    {
+        // Invoice → Lease → Tenant (UserId)
+        var invoices = await _context.Invoices
+            .Include(i => i.Lease)
+                .ThenInclude(l => l.Tenant)
+            .Where(i => i.Lease.Tenant.UserId == userId)
+            .OrderByDescending(i => i.IssueDate)
+            .ToListAsync();
+        return invoices.Select(MapToDto);
+    }
+
+    public async Task<IEnumerable<InvoiceDto>> GetByTenantIdAsync(int tenantId)
+    {
+        var invoices = await _context.Invoices
+            .Include(i => i.Lease)
+            .Where(i => i.Lease.TenantId == tenantId)
+            .OrderByDescending(i => i.IssueDate)
+            .ToListAsync();
+        return invoices.Select(MapToDto);
+    }
+
+    public async Task<int?> GetTenantIdForInvoiceAsync(int invoiceId)
+    {
+        return await _context.Invoices
+            .Where(i => i.Id == invoiceId)
+            .Select(i => (int?)i.Lease.TenantId)
+            .FirstOrDefaultAsync();
+    }
+
     public async Task<IEnumerable<InvoiceDto>> GetOverdueAsync()
     {
         // Auto-mark overdue: any Issued invoice whose DueDate has passed

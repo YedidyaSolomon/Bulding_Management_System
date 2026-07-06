@@ -1,3 +1,4 @@
+using BMS.Application.Common;
 using BMS.Application.DTOs.Leases;
 using BMS.Application.Interfaces;
 using BMS.Application.Interfaces.Repositories;
@@ -6,23 +7,62 @@ namespace BMS.Application.Services;
 
 public class LeaseService : ILeaseService
 {
-    private readonly ILeaseRepository _leaseRepository;
-    private readonly IUnitRepository  _unitRepository;
+    private readonly ILeaseRepository     _leaseRepository;
+    private readonly IUnitRepository      _unitRepository;
+    private readonly ICurrentUserService  _currentUser;
 
-    public LeaseService(ILeaseRepository leaseRepository, IUnitRepository unitRepository)
+    public LeaseService(
+        ILeaseRepository leaseRepository,
+        IUnitRepository unitRepository,
+        ICurrentUserService currentUser)
     {
         _leaseRepository = leaseRepository;
         _unitRepository  = unitRepository;
+        _currentUser     = currentUser;
     }
 
-    public Task<IEnumerable<LeaseDto>> GetAllAsync()                    => _leaseRepository.GetAllAsync();
-    public Task<IEnumerable<LeaseDto>> GetByTenantIdAsync(int tenantId) => _leaseRepository.GetByTenantIdAsync(tenantId);
-    public Task<IEnumerable<LeaseDto>> GetByUnitIdAsync(int unitId)     => _leaseRepository.GetByUnitIdAsync(unitId);
+    public async Task<IEnumerable<LeaseDto>> GetAllAsync()
+    {
+        if (_currentUser.IsViewer)
+        {
+            if (!_currentUser.TenantId.HasValue)
+                return Enumerable.Empty<LeaseDto>();
+
+            return await _leaseRepository.GetByTenantIdAsync(_currentUser.TenantId.Value);
+        }
+
+        return await _leaseRepository.GetAllAsync();
+    }
+
+    public async Task<IEnumerable<LeaseDto>> GetByTenantIdAsync(int tenantId)
+    {
+        if (_currentUser.IsViewer)
+            DataScope.EnsureViewerTenantAccess(_currentUser, tenantId);
+
+        return await _leaseRepository.GetByTenantIdAsync(tenantId);
+    }
+
+    public async Task<IEnumerable<LeaseDto>> GetByUnitIdAsync(int unitId)
+    {
+        var leases = await _leaseRepository.GetByUnitIdAsync(unitId);
+
+        if (_currentUser.IsViewer && _currentUser.TenantId.HasValue)
+            return leases.Where(l => l.TenantId == _currentUser.TenantId.Value);
+
+        if (_currentUser.IsViewer)
+            return Enumerable.Empty<LeaseDto>();
+
+        return leases;
+    }
 
     public async Task<LeaseDto> GetByIdAsync(int id)
     {
         var lease = await _leaseRepository.GetByIdAsync(id);
-        return lease ?? throw new KeyNotFoundException($"Lease {id} not found.");
+        if (lease is null)
+            throw new KeyNotFoundException($"Lease {id} not found.");
+
+        DataScope.EnsureViewerTenantAccess(_currentUser, lease.TenantId);
+        return lease;
     }
 
     public async Task<LeaseDto> CreateAsync(CreateLeaseDto dto)
@@ -42,6 +82,8 @@ public class LeaseService : ILeaseService
 
     public async Task<LeaseDto> UpdateAsync(int id, UpdateLeaseDto dto)
     {
+        await GetByIdAsync(id);
+
         if (!await _leaseRepository.ExistsAsync(id))
             throw new KeyNotFoundException($"Lease {id} not found.");
 
@@ -51,6 +93,8 @@ public class LeaseService : ILeaseService
 
     public async Task TerminateAsync(int id, TerminateLeaseDto dto)
     {
+        await GetByIdAsync(id);
+
         if (!await _leaseRepository.ExistsAsync(id))
             throw new KeyNotFoundException($"Lease {id} not found.");
 
