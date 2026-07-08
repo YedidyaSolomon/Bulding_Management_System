@@ -17,7 +17,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IInvoiceService,      InvoiceService>();
         services.AddScoped<IPaymentService,      PaymentService>();
         services.AddScoped<INotificationService, NotificationService>();
-        services.AddScoped<IReportService,       ReportService>();
+        // IReportService is registered in InfrastructureServiceExtensions (uses ClosedXML)
         services.AddScoped<IDashboardService,    DashboardService>();
 
         services.AddFluentValidationAutoValidation();

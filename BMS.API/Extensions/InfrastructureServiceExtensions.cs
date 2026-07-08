@@ -7,7 +7,6 @@ using BMS.Infrastructure.Repositories;
 using BMS.Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-
 namespace BMS.API.Extensions;
 
 public static class InfrastructureServiceExtensions
@@ -51,6 +50,8 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IPaymentRepository,      PaymentRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IDocumentRepository,     DocumentRepository>();
+        // ReportService lives in Infrastructure because it uses ClosedXML + DbContext directly
+        services.AddScoped<IReportService,          ReportService>();
 
         return services;
     }
