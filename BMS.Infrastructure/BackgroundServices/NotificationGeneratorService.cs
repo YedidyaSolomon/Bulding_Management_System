@@ -113,7 +113,7 @@ public class NotificationGeneratorService : BackgroundService
 
         foreach (var invoice in dueInvoices)
         {
-            var userId = invoice.Lease.Tenant.UserId;
+            var userId = invoice.Lease.Tenant.AppUserId;
 
             // Check if a PaymentDue notification for this invoice already exists
             var exists = await context.Notifications
@@ -169,7 +169,7 @@ public class NotificationGeneratorService : BackgroundService
 
             if (invoice is null) continue;
 
-            var userId = invoice.Lease.Tenant.UserId;
+            var userId = invoice.Lease.Tenant.AppUserId;
 
             // Check if a PaymentOverdue notification for this invoice already exists
             var exists = await context.Notifications

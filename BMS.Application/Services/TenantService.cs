@@ -8,32 +8,35 @@ namespace BMS.Application.Services;
 
 public class TenantService : ITenantService
 {
-    private readonly ITenantRepository   _tenantRepository;
-    private readonly IUserRepository     _userRepository;
-    private readonly ICurrentUserService _currentUser;
+    private readonly ITenantRepository        _tenantRepository;
+    private readonly IUserRepository          _userRepository;
+    private readonly ICurrentUserService      _currentUser;
+    private readonly ITenantOwnershipResolver _ownershipResolver;
 
     public TenantService(
-        ITenantRepository tenantRepository,
-        IUserRepository userRepository,
-        ICurrentUserService currentUser)
+        ITenantRepository        tenantRepository,
+        IUserRepository          userRepository,
+        ICurrentUserService      currentUser,
+        ITenantOwnershipResolver ownershipResolver)
     {
-        _tenantRepository = tenantRepository;
-        _userRepository   = userRepository;
-        _currentUser      = currentUser;
+        _tenantRepository  = tenantRepository;
+        _userRepository    = userRepository;
+        _currentUser       = currentUser;
+        _ownershipResolver = ownershipResolver;
     }
 
     public async Task<IEnumerable<TenantDto>> GetAllAsync()
     {
-        if (_currentUser.IsViewer)
-        {
-            if (!_currentUser.TenantId.HasValue)
-                return Enumerable.Empty<TenantDto>();
+        var ownedIds = await _ownershipResolver.GetOwnedTenantIdsAsync();
 
-            var tenant = await _tenantRepository.GetByIdAsync(_currentUser.TenantId.Value);
-            return tenant is null ? Enumerable.Empty<TenantDto>() : new[] { tenant };
-        }
+        if (ownedIds is null)
+            return await _tenantRepository.GetAllAsync();
 
-        return await _tenantRepository.GetAllAsync();
+        // Viewer — return only their own tenants
+        if (ownedIds.Count == 0)
+            return Enumerable.Empty<TenantDto>();
+
+        return await _tenantRepository.GetByIdsAsync(ownedIds);
     }
 
     public async Task<TenantDto> GetByIdAsync(int id)
@@ -42,20 +45,15 @@ public class TenantService : ITenantService
         if (tenant is null)
             throw new KeyNotFoundException($"Tenant {id} not found.");
 
-        DataScope.EnsureViewerTenantAccess(_currentUser, id);
+        var ownedIds = await _ownershipResolver.GetOwnedTenantIdsAsync();
+        DataScope.EnsureViewerOwnedTenantAccess(ownedIds, id);
+
         return tenant;
     }
 
     public async Task<IEnumerable<TenantDto>> GetByUserIdAsync(string userId)
     {
         var resolvedUserId = DataScope.ResolveUserId(_currentUser, userId);
-
-        if (_currentUser.IsViewer && _currentUser.TenantId.HasValue)
-        {
-            var tenant = await _tenantRepository.GetByIdAsync(_currentUser.TenantId.Value);
-            return tenant is null ? Enumerable.Empty<TenantDto>() : new[] { tenant };
-        }
-
         return await _tenantRepository.GetByUserIdAsync(resolvedUserId);
     }
 
@@ -69,22 +67,31 @@ public class TenantService : ITenantService
 
     public async Task<TenantDto> CreateAsync(CreateTenantDto dto)
     {
-        var user = await _userRepository.FindByEmailAsync(dto.UserEmail.Trim().ToLowerInvariant());
-        if (user is null)
-            throw new InvalidOperationException(
-                $"No registered account found for email '{dto.UserEmail}'. " +
-                "The user must register before a tenant can be linked to them.");
+        if (_currentUser.IsViewer)
+            throw new ForbiddenAccessException();
 
-        if (!user.IsActive)
-            throw new InvalidOperationException(
-                $"The account for '{dto.UserEmail}' is disabled and cannot be linked to a tenant.");
+        // If an AppUserId was provided, validate the user exists and has the Viewer role
+        if (!string.IsNullOrWhiteSpace(dto.AppUserId))
+        {
+            var user = await _userRepository.FindByIdAsync(dto.AppUserId)
+                       ?? throw new InvalidOperationException(
+                           $"No registered account found with ID '{dto.AppUserId}'.");
+
+            if (!user.IsActive)
+                throw new InvalidOperationException(
+                    $"The account for user '{dto.AppUserId}' is disabled and cannot be linked to a tenant.");
+
+            var role = await _userRepository.GetRoleAsync(dto.AppUserId);
+            if (!string.Equals(role, "Viewer", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException(
+                    "Only Viewer accounts can be linked as tenant owners.");
+        }
 
         if (await _tenantRepository.IsTINTakenAsync(dto.TIN))
             throw new InvalidOperationException($"TIN '{dto.TIN}' is already registered.");
 
-        var tenant = await _tenantRepository.CreateAsync(dto, user.Id);
-        await _userRepository.SetTenantIdAsync(user.Id, tenant.Id);
-        return tenant;
+        // No uniqueness constraint — same user can own multiple tenants
+        return await _tenantRepository.CreateAsync(dto, dto.AppUserId);
     }
 
     public async Task<TenantDto> UpdateAsync(int id, UpdateTenantDto dto)
@@ -107,12 +114,53 @@ public class TenantService : ITenantService
         await _tenantRepository.DeleteAsync(id);
     }
 
+    /// <summary>
+    /// Links an existing Tenant to a registered Viewer account.
+    /// Admin/Manager only — endpoint: PUT /api/tenants/{id}/link-user.
+    /// </summary>
+    /// <param name="force">
+    /// When <c>false</c> (default), rejects the request if the tenant already has a
+    /// non-null <c>AppUserId</c>, preventing silent overwrites.
+    /// Pass <c>true</c> to explicitly re-link to a different user.
+    /// </param>
+    public async Task<TenantDto> LinkUserAsync(int tenantId, string appUserId, bool force = false)
+    {
+        if (_currentUser.IsViewer)
+            throw new ForbiddenAccessException();
+
+        var tenant = await _tenantRepository.GetByIdAsync(tenantId)
+                     ?? throw new KeyNotFoundException($"Tenant {tenantId} not found.");
+
+        // Guard against silent overwrite of an existing link
+        if (!force && tenant.AppUserId is not null)
+            throw new InvalidOperationException(
+                $"Tenant {tenantId} is already linked to user '{tenant.AppUserId}'. " +
+                "Pass force=true to overwrite the existing link.");
+
+        var user = await _userRepository.FindByIdAsync(appUserId)
+                   ?? throw new InvalidOperationException(
+                       $"No registered account found with ID '{appUserId}'.");
+
+        if (!user.IsActive)
+            throw new InvalidOperationException(
+                $"The account for user '{appUserId}' is disabled.");
+
+        var role = await _userRepository.GetRoleAsync(appUserId);
+        if (!string.Equals(role, "Viewer", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException(
+                "Only Viewer accounts can be linked as tenant owners.");
+
+        await _tenantRepository.SetAppUserIdAsync(tenantId, appUserId);
+        return (await _tenantRepository.GetByIdAsync(tenantId))!;
+    }
+
     public Task<LegalDocumentDto> AddDocumentAsync(CreateLegalDocumentDto dto) =>
         _tenantRepository.AddDocumentAsync(dto);
 
     public async Task<IEnumerable<LegalDocumentDto>> GetDocumentsAsync(int tenantId)
     {
-        DataScope.EnsureViewerTenantAccess(_currentUser, tenantId);
+        var ownedIds = await _ownershipResolver.GetOwnedTenantIdsAsync();
+        DataScope.EnsureViewerOwnedTenantAccess(ownedIds, tenantId);
         return await _tenantRepository.GetDocumentsAsync(tenantId);
     }
 }

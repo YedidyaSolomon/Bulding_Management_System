@@ -1,0 +1,121 @@
+<div class="dialog-header">
+  <mat-icon class="dialog-icon">{{ isRelink ? 'sync_alt' : 'link' }}</mat-icon>
+  <div>
+    <h2 mat-dialog-title>{{ isRelink ? 'Re-link Owner Account' : 'Link to Registered User' }}</h2>
+    <p class="subtitle">
+      <strong>{{ data.tenant.organizationName }}</strong>
+    </p>
+  </div>
+</div>
+
+<mat-dialog-content>
+
+  <!-- Current link status banner -->
+  <div class="current-link-banner" [class.linked]="data.tenant.appUserId" [class.unlinked]="!data.tenant.appUserId">
+    <mat-icon>{{ data.tenant.appUserId ? 'link' : 'link_off' }}</mat-icon>
+    <span *ngIf="data.tenant.appUserId">
+      Currently linked to: <strong>{{ data.tenant.userEmail ?? data.tenant.appUserId }}</strong>
+    </span>
+    <span *ngIf="!data.tenant.appUserId">
+      This tenant has no linked owner account.
+    </span>
+  </div>
+
+  <!-- User picker -->
+  <form [formGroup]="form" novalidate class="link-form">
+
+    <div class="loading-users" *ngIf="loadingUsers">
+      <mat-spinner diameter="20"></mat-spinner>
+      <span>Loading accounts…</span>
+    </div>
+
+    <mat-form-field *ngIf="!loadingUsers" appearance="outline" class="full-width">
+      <mat-label>Select Viewer Account</mat-label>
+      <input
+        matInput
+        formControlName="userSearch"
+        placeholder="Search by name or email…"
+        [matAutocomplete]="userAuto"
+        autocomplete="off">
+      <mat-icon matPrefix>manage_accounts</mat-icon>
+
+      <button
+        *ngIf="selectedUser"
+        matSuffix
+        mat-icon-button
+        type="button"
+        aria-label="Clear"
+        (click)="clearSelection()">
+        <mat-icon>close</mat-icon>
+      </button>
+
+      <mat-autocomplete #userAuto="matAutocomplete"
+        (optionSelected)="onUserSelected($event.option.value)">
+        <mat-option *ngFor="let u of filteredUsers" [value]="u">
+          <div class="user-option">
+            <mat-icon class="user-option-icon">person</mat-icon>
+            <div class="user-option-text">
+              <span class="user-option-name">{{ u.fullName }}</span>
+              <span class="user-option-email">{{ u.email }}</span>
+            </div>
+          </div>
+        </mat-option>
+        <mat-option *ngIf="!loadingUsers && filteredUsers.length === 0" [disabled]="true">
+          <span class="no-results">No matching accounts found.</span>
+        </mat-option>
+      </mat-autocomplete>
+
+      <mat-hint *ngIf="selectedUser" class="hint-selected">
+        <mat-icon>check_circle</mat-icon>
+        Selected: {{ selectedUser.fullName }} ({{ selectedUser.email }})
+      </mat-hint>
+      <mat-hint *ngIf="!selectedUser">Only Viewer accounts can be linked as tenant owners.</mat-hint>
+      <mat-error *ngIf="form.get('userSearch')!.hasError('required')">Please select a user.</mat-error>
+    </mat-form-field>
+
+  </form>
+
+  <!-- Force-confirm panel — shown when re-linking to a DIFFERENT user -->
+  <div class="force-confirm-panel" *ngIf="showForceConfirm && selectedUser && !loading">
+    <mat-icon class="warn-icon">warning</mat-icon>
+    <div class="force-confirm-body">
+      <p class="force-confirm-title">Reassign ownership?</p>
+      <p class="force-confirm-text">
+        This tenant is currently linked to
+        <strong>{{ data.tenant.userEmail ?? data.tenant.appUserId }}</strong>.
+        Relinking it to
+        <strong>{{ selectedUser.fullName }}</strong>
+        will revoke the previous owner's access to this tenant's leases, invoices, and documents.
+      </p>
+      <p class="force-confirm-text">Do you want to proceed?</p>
+    </div>
+  </div>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="loading">Cancel</button>
+
+  <!-- Normal link — shown when not a relink conflict -->
+  <button
+    *ngIf="!showForceConfirm"
+    mat-raised-button color="primary"
+    (click)="onLink(false)"
+    [disabled]="loading || !selectedUser">
+    <mat-spinner diameter="18" *ngIf="loading"></mat-spinner>
+    <mat-icon *ngIf="!loading">link</mat-icon>
+    <span *ngIf="!loading">Link Account</span>
+  </button>
+
+  <!-- Force-confirm path — two buttons shown when relinking -->
+  <ng-container *ngIf="showForceConfirm">
+    <button mat-stroked-button (click)="clearSelection()" [disabled]="loading">
+      Choose Different User
+    </button>
+    <button mat-raised-button color="warn" (click)="onLink(true)" [disabled]="loading">
+      <mat-spinner diameter="18" *ngIf="loading"></mat-spinner>
+      <mat-icon *ngIf="!loading">sync_alt</mat-icon>
+      <span *ngIf="!loading">Yes, Reassign Ownership</span>
+    </button>
+  </ng-container>
+</mat-dialog-actions>

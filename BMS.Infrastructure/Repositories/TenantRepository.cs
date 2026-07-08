@@ -16,7 +16,7 @@ public class TenantRepository : ITenantRepository
     public async Task<TenantDto?> GetByIdAsync(int id)
     {
         var t = await _context.Tenants
-            .Include(t => t.User)
+            .Include(t => t.AppUser)
             .FirstOrDefaultAsync(t => t.Id == id);
         return t is null ? null : MapToDto(t);
     }
@@ -24,7 +24,7 @@ public class TenantRepository : ITenantRepository
     public async Task<IEnumerable<TenantDto>> GetAllAsync()
     {
         var tenants = await _context.Tenants
-            .Include(t => t.User)
+            .Include(t => t.AppUser)
             .OrderBy(t => t.OrganizationName)
             .ToListAsync();
         return tenants.Select(MapToDto);
@@ -33,18 +33,29 @@ public class TenantRepository : ITenantRepository
     public async Task<IEnumerable<TenantDto>> GetByUserIdAsync(string userId)
     {
         var tenants = await _context.Tenants
-            .Include(t => t.User)
-            .Where(t => t.UserId == userId)
+            .Include(t => t.AppUser)
+            .Where(t => t.AppUserId == userId)
             .OrderBy(t => t.OrganizationName)
             .ToListAsync();
         return tenants.Select(MapToDto);
     }
 
-    public async Task<TenantDto> CreateAsync(CreateTenantDto dto, string userId)
+    public async Task<IEnumerable<TenantDto>> GetByIdsAsync(IEnumerable<int> ids)
+    {
+        var idList  = ids.ToList();
+        var tenants = await _context.Tenants
+            .Include(t => t.AppUser)
+            .Where(t => idList.Contains(t.Id))
+            .OrderBy(t => t.OrganizationName)
+            .ToListAsync();
+        return tenants.Select(MapToDto);
+    }
+
+    public async Task<TenantDto> CreateAsync(CreateTenantDto dto, string? appUserId)
     {
         var tenant = new Tenant
         {
-            UserId            = userId,
+            AppUserId         = string.IsNullOrWhiteSpace(appUserId) ? null : appUserId,
             OrganizationName  = dto.OrganizationName,
             TIN               = dto.TIN,
             Phone             = dto.Phone,
@@ -95,6 +106,15 @@ public class TenantRepository : ITenantRepository
             ? _context.Tenants.AnyAsync(t => t.TIN == tin && t.Id != excludeId.Value)
             : _context.Tenants.AnyAsync(t => t.TIN == tin);
 
+    public async Task SetAppUserIdAsync(int tenantId, string appUserId)
+    {
+        var tenant = await _context.Tenants.FindAsync(tenantId)
+                     ?? throw new KeyNotFoundException($"Tenant {tenantId} not found.");
+
+        tenant.AppUserId = appUserId;
+        await _context.SaveChangesAsync();
+    }
+
     // ── Legal Documents ──────────────────────────────────────────────────────
 
     public async Task<LegalDocumentDto> AddDocumentAsync(CreateLegalDocumentDto dto)
@@ -132,8 +152,8 @@ public class TenantRepository : ITenantRepository
     private static TenantDto MapToDto(Tenant t) => new()
     {
         Id                = t.Id,
-        UserId            = t.UserId,
-        UserEmail         = t.User?.Email ?? string.Empty,
+        AppUserId         = t.AppUserId,
+        UserEmail         = t.AppUser?.Email,
         OrganizationName  = t.OrganizationName,
         TIN               = t.TIN,
         Phone             = t.Phone,

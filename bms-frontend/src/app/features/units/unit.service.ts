@@ -51,6 +51,30 @@ export class UnitService {
   }
 
   /**
+   * GET /api/units/selectable-for-lease?tenantId={id}
+   * Returns Available units + any unit Reserved specifically for the given tenant,
+   * with `isReservedForRequestedTenant = true` on the reserved one so the UI can
+   * pin it at the top with a label.
+   */
+  getSelectableForLease(tenantId: number): Observable<UnitDto[]> {
+    return this.http
+      .get<ApiResponse<UnitDto[]>>(`${this.apiUrl}/selectable-for-lease`, {
+        params: { tenantId: String(tenantId) },
+      })
+      .pipe(map(r => r.data ?? []));
+  }
+
+  /**
+   * POST /api/units/{id}/reserve
+   * Marks the unit as Reserved for the given tenant.
+   */
+  reserve(unitId: number, tenantId: number): Observable<UnitDto> {
+    return this.http
+      .post<ApiResponse<UnitDto>>(`${this.apiUrl}/${unitId}/reserve`, { tenantId })
+      .pipe(map(r => r.data!));
+  }
+
+  /**
    * Derives a floor-capacity map from an already-loaded list of units.
    * Avoids an extra HTTP call — callers pass in their cached unit list.
    *

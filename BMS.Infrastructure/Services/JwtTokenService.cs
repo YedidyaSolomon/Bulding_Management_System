@@ -10,8 +10,6 @@ namespace BMS.Infrastructure.Services;
 
 public class JwtTokenService : IJwtTokenService
 {
-    public const string TenantIdClaimType = "tenant_id";
-
     private readonly JwtSettings _settings;
 
     public JwtTokenService(IOptions<JwtSettings> options)
@@ -19,7 +17,14 @@ public class JwtTokenService : IJwtTokenService
         _settings = options.Value;
     }
 
-    public string GenerateToken(string userId, string email, string fullName, string role, int? tenantId = null)
+    /// <inheritdoc/>
+    /// <remarks>
+    /// JWT contains: sub, NameIdentifier, email, jti, name, role.
+    /// Tenant ownership is NOT embedded in the token — it is resolved
+    /// at query time via <see cref="BMS.Application.Interfaces.ITenantOwnershipResolver"/>
+    /// so it stays accurate even after a Tenant is re-linked to a different user.
+    /// </remarks>
+    public string GenerateToken(string userId, string email, string fullName, string role)
     {
         var claims = new List<Claim>
         {
@@ -30,9 +35,6 @@ public class JwtTokenService : IJwtTokenService
             new(ClaimTypes.Name,               fullName),
             new(ClaimTypes.Role,               role)
         };
-
-        if (tenantId.HasValue)
-            claims.Add(new Claim(TenantIdClaimType, tenantId.Value.ToString()));
 
         var signingKey  = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.SecretKey));
         var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);

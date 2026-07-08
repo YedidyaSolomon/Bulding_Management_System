@@ -25,7 +25,7 @@ public class UnitRepository : IUnitRepository
             .OrderBy(u => u.FloorNumber)
             .ThenBy(u => u.UnitNumber)
             .ToListAsync();
-        return units.Select(MapToDto);
+        return units.Select(u => MapToDto(u));
     }
 
     public async Task<UnitDto> CreateAsync(CreateUnitDto dto)
@@ -90,17 +90,56 @@ public class UnitRepository : IUnitRepository
             ? _context.Units.CountAsync(u => u.FloorNumber == floorNumber && u.Id != excludeUnitId.Value)
             : _context.Units.CountAsync(u => u.FloorNumber == floorNumber);
 
+    public async Task<IEnumerable<UnitDto>> GetSelectableForLeaseAsync(int tenantId)
+    {
+        // Pull Available units + units Reserved specifically for this tenant
+        var units = await _context.Units
+            .Where(u =>
+                u.Status == UnitStatus.Available ||
+                (u.Status == UnitStatus.Reserved && u.ReservedForTenantId == tenantId))
+            .OrderBy(u => u.FloorNumber)
+            .ThenBy(u => u.UnitNumber)
+            .ToListAsync();
+
+        return units.Select(u =>
+            MapToDto(u, isReservedForRequestedTenant:
+                u.Status == UnitStatus.Reserved && u.ReservedForTenantId == tenantId));
+    }
+
+    public async Task<UnitDto> ReserveAsync(int unitId, int tenantId)
+    {
+        var unit = await _context.Units.FindAsync(unitId)
+                   ?? throw new KeyNotFoundException($"Unit {unitId} not found.");
+
+        if (unit.Status == UnitStatus.Occupied)
+            throw new InvalidOperationException(
+                $"Unit '{unit.UnitNumber}' is currently Occupied and cannot be reserved.");
+
+        if (unit.Status == UnitStatus.UnderMaintenance)
+            throw new InvalidOperationException(
+                $"Unit '{unit.UnitNumber}' is under maintenance and cannot be reserved.");
+
+        unit.Status              = UnitStatus.Reserved;
+        unit.ReservedForTenantId = tenantId;
+        unit.UpdatedAt           = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        return MapToDto(unit);
+    }
+
     // ── Mapping ─────────────────────────────────────────────────────────────
 
-    private static UnitDto MapToDto(Unit u) => new()
+    private static UnitDto MapToDto(Unit u, bool isReservedForRequestedTenant = false) => new()
     {
-        Id           = u.Id,
-        FloorNumber  = u.FloorNumber,
-        UnitNumber   = u.UnitNumber,
-        UnitType     = u.UnitType.ToString(),
-        AreaSqMeters = u.AreaSqMeters,
-        MonthlyRent  = u.MonthlyRent,
-        Status       = u.Status.ToString(),
-        Description  = u.Description
+        Id                           = u.Id,
+        FloorNumber                  = u.FloorNumber,
+        UnitNumber                   = u.UnitNumber,
+        UnitType                     = u.UnitType.ToString(),
+        AreaSqMeters                 = u.AreaSqMeters,
+        MonthlyRent                  = u.MonthlyRent,
+        Status                       = u.Status.ToString(),
+        Description                  = u.Description,
+        ReservedForTenantId          = u.ReservedForTenantId,
+        IsReservedForRequestedTenant = isReservedForRequestedTenant,
     };
 }

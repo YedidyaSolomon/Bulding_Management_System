@@ -51,7 +51,8 @@ public class TenantsController : ControllerBase
 
     /// <summary>
     /// POST /api/tenants — register a new tenant.
-    /// The request body must include <c>UserEmail</c> of an already-registered account.
+    /// Optionally supply <c>AppUserId</c> to link it to an existing Viewer account;
+    /// omit to create the tenant unlinked (link later via PUT /api/tenants/{id}/link-user).
     /// </summary>
     [HttpPost]
     [Authorize(Roles = "Admin,Manager")]
@@ -62,6 +63,27 @@ public class TenantsController : ControllerBase
         var tenant = await _tenantService.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = tenant.Id },
             ApiResponse<TenantDto>.Ok(tenant, "Tenant registered successfully."));
+    }
+
+    /// <summary>
+    /// PUT /api/tenants/{id}/link-user — link an existing (possibly unlinked) Tenant
+    /// to a registered Viewer account.
+    /// Admin/Manager only.
+    /// Rules enforced by the service:
+    ///   • Target user must exist and be active.
+    ///   • Target user must have the Viewer role.
+    ///   • If the tenant already has a non-null AppUserId and <c>force</c> is false, the
+    ///     request is rejected to prevent silent overwrites.
+    /// </summary>
+    [HttpPut("{id:int}/link-user")]
+    [Authorize(Roles = "Admin,Manager")]
+    [ProducesResponseType(typeof(ApiResponse<TenantDto>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<object>), 400)]
+    [ProducesResponseType(typeof(ApiResponse<object>), 404)]
+    public async Task<IActionResult> LinkUser(int id, [FromBody] LinkTenantUserDto dto)
+    {
+        var tenant = await _tenantService.LinkUserAsync(id, dto.AppUserId, dto.Force);
+        return Ok(ApiResponse<TenantDto>.Ok(tenant, "Tenant linked to user successfully."));
     }
 
     /// <summary>PUT /api/tenants/{id}</summary>
@@ -110,8 +132,9 @@ public class TenantsController : ControllerBase
 
     /// <summary>
     /// GET /api/tenants/registered-users — Admin/Manager only.
-    /// Returns the email + full name of every active registered user account,
-    /// used by the tenant-creation form to validate and pick a user.
+    /// Returns the id, email, and full name of every active registered user account,
+    /// used by the tenant-creation/link-user form so the admin can pick a user and
+    /// submit their <c>Id</c> as <c>AppUserId</c>.
     /// </summary>
     [HttpGet("registered-users")]
     [Authorize(Roles = "Admin,Manager")]
@@ -119,10 +142,13 @@ public class TenantsController : ControllerBase
     public async Task<IActionResult> GetRegisteredUsers()
     {
         var users = await _tenantService.GetRegisteredUsersAsync();
-        var result = users.Select(u => new RegisteredUserDto(u.Email, u.FullName));
+        var result = users.Select(u => new RegisteredUserDto(u.Id, u.Email, u.FullName));
         return Ok(ApiResponse<IEnumerable<RegisteredUserDto>>.Ok(result));
     }
 }
 
-/// <summary>Lightweight DTO returned to the frontend for the email-picker.</summary>
-public record RegisteredUserDto(string Email, string FullName);
+/// <summary>
+/// Lightweight DTO returned to the frontend for the user-picker.
+/// Includes the user's Id so the frontend can submit AppUserId directly.
+/// </summary>
+public record RegisteredUserDto(string Id, string Email, string FullName);

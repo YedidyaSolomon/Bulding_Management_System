@@ -7,31 +7,36 @@ namespace BMS.Application.Services;
 
 public class PaymentService : IPaymentService
 {
-    private readonly IPaymentRepository  _paymentRepository;
-    private readonly IInvoiceRepository  _invoiceRepository;
-    private readonly ICurrentUserService _currentUser;
+    private readonly IPaymentRepository      _paymentRepository;
+    private readonly IInvoiceRepository      _invoiceRepository;
+    private readonly ICurrentUserService     _currentUser;
+    private readonly ITenantOwnershipResolver _ownershipResolver;
 
     public PaymentService(
-        IPaymentRepository paymentRepository,
-        IInvoiceRepository invoiceRepository,
-        ICurrentUserService currentUser)
+        IPaymentRepository      paymentRepository,
+        IInvoiceRepository      invoiceRepository,
+        ICurrentUserService     currentUser,
+        ITenantOwnershipResolver ownershipResolver)
     {
         _paymentRepository = paymentRepository;
         _invoiceRepository = invoiceRepository;
         _currentUser       = currentUser;
+        _ownershipResolver = ownershipResolver;
     }
 
     public async Task<IEnumerable<PaymentDto>> GetAllAsync()
     {
-        if (_currentUser.IsViewer)
-        {
-            if (!_currentUser.TenantId.HasValue)
-                return Enumerable.Empty<PaymentDto>();
+        var ownedIds = await _ownershipResolver.GetOwnedTenantIdsAsync();
 
-            return await _paymentRepository.GetByTenantIdAsync(_currentUser.TenantId.Value);
-        }
+        if (ownedIds is null)
+            return await _paymentRepository.GetAllAsync();
 
-        return await _paymentRepository.GetAllAsync();
+        if (ownedIds.Count == 0)
+            return Enumerable.Empty<PaymentDto>();
+
+        var tasks   = ownedIds.Select(tid => _paymentRepository.GetByTenantIdAsync(tid));
+        var results = await Task.WhenAll(tasks);
+        return results.SelectMany(x => x);
     }
 
     public async Task<IEnumerable<PaymentDto>> GetByInvoiceIdAsync(int invoiceId)
@@ -54,7 +59,10 @@ public class PaymentService : IPaymentService
 
         var tenantId = await _paymentRepository.GetTenantIdForPaymentAsync(id);
         if (tenantId.HasValue)
-            DataScope.EnsureViewerTenantAccess(_currentUser, tenantId.Value);
+        {
+            var ownedIds = await _ownershipResolver.GetOwnedTenantIdsAsync();
+            DataScope.EnsureViewerOwnedTenantAccess(ownedIds, tenantId.Value);
+        }
 
         return payment;
     }
@@ -65,21 +73,20 @@ public class PaymentService : IPaymentService
             throw new KeyNotFoundException($"Invoice {dto.InvoiceId} not found.");
 
         var payment = await _paymentRepository.CreateAsync(dto);
-
         await _invoiceRepository.UpdateStatusAsync(dto.InvoiceId, "Paid");
-
         return payment;
     }
 
     private async Task EnsureViewerCanAccessInvoiceAsync(int invoiceId)
     {
-        if (!_currentUser.IsViewer)
-            return;
+        var ownedIds = await _ownershipResolver.GetOwnedTenantIdsAsync();
+        if (ownedIds is null)
+            return; // Admin / Manager bypass
 
         var tenantId = await _invoiceRepository.GetTenantIdForInvoiceAsync(invoiceId);
         if (!tenantId.HasValue)
             throw new KeyNotFoundException($"Invoice {invoiceId} not found.");
 
-        DataScope.EnsureViewerTenantAccess(_currentUser, tenantId.Value);
+        DataScope.EnsureViewerOwnedTenantAccess(ownedIds, tenantId.Value);
     }
 }

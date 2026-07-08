@@ -10,15 +10,17 @@ public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
     {
         builder.HasKey(t => t.Id);
 
-        // FK to the registered AppUser account
-        builder.Property(t => t.UserId)
-               .IsRequired()
+        // Nullable FK to AppUser — set null if the owning user is deleted
+        // (preserves tenant/lease/invoice history).
+        // No uniqueness constraint — one user can own many tenants.
+        builder.Property(t => t.AppUserId)
+               .IsRequired(false)
                .HasMaxLength(450); // Identity ID is a GUID string
 
-        builder.HasOne(t => t.User)
-               .WithMany()
-               .HasForeignKey(t => t.UserId)
-               .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(t => t.AppUser)
+               .WithMany(u => u.Tenants)
+               .HasForeignKey(t => t.AppUserId)
+               .OnDelete(DeleteBehavior.SetNull);
 
         builder.Property(t => t.OrganizationName)
                .IsRequired()

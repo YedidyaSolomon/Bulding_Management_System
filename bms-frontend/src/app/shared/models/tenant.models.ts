@@ -2,10 +2,10 @@
 
 export interface TenantDto {
   id:                number;
-  /** AppUser.Id the tenant is linked to */
-  userId:            string;
-  /** Email of the linked user account */
-  userEmail:         string;
+  /** AppUser.Id of the linked user account. Null when not yet linked. */
+  appUserId:         string | null;
+  /** Email of the linked user account — null when not yet linked. */
+  userEmail:         string | null;
   organizationName:  string;
   tin:               string;
   phone:             string;
@@ -16,8 +16,9 @@ export interface TenantDto {
 }
 
 export interface CreateTenantDto {
-  /** Email of an already-registered user account — resolved to UserId on the backend */
-  userEmail:         string;
+  /** Optional — AppUser.Id of a registered Viewer account to link as tenant owner.
+   *  Omit (null/undefined) to create an unlinked tenant (link later via PUT link-user). */
+  appUserId?:        string | null;
   organizationName:  string;
   tin:               string;
   phone:             string;
@@ -36,8 +37,16 @@ export interface UpdateTenantDto {
   isActive:          boolean;
 }
 
-/** Lightweight record returned by GET /api/tenants/registered-users */
+export interface LinkTenantUserDto {
+  appUserId: string;
+  /** Pass true to overwrite an existing link. Backend rejects without this flag. */
+  force:     boolean;
+}
+
+/** Lightweight record returned by GET /api/tenants/registered-users.
+ *  Includes id so the frontend can submit AppUserId directly. */
 export interface RegisteredUserDto {
+  id:       string;
   email:    string;
   fullName: string;
 }

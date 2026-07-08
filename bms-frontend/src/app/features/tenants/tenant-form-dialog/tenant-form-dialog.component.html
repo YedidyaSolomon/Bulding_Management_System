@@ -9,28 +9,60 @@
 <mat-dialog-content>
   <form [formGroup]="form" novalidate class="tenant-form">
 
-    <!-- Linked User Account — create mode only -->
-    <mat-form-field *ngIf="!isEdit" appearance="outline" class="full-width">
-      <mat-label>Linked User Account</mat-label>
-      <input
-        matInput
-        formControlName="userEmail"
-        placeholder="Search by email or name…"
-        [matAutocomplete]="userAuto"
-        type="email">
-      <mat-icon matPrefix>manage_accounts</mat-icon>
-      <mat-autocomplete #userAuto="matAutocomplete">
-        <mat-option *ngFor="let u of filteredUsers" [value]="u.email">
-          <span class="user-option-email">{{ u.email }}</span>
-          <span class="user-option-name">&nbsp;— {{ u.fullName }}</span>
-        </mat-option>
-      </mat-autocomplete>
-      <mat-hint>Must be a registered user account. Determines who can view this tenant.</mat-hint>
-      <mat-error *ngIf="userEmail.hasError('required')">User account is required.</mat-error>
-      <mat-error *ngIf="userEmail.hasError('email')">Enter a valid email address.</mat-error>
-    </mat-form-field>
+    <!-- ── Owner Account Picker — create mode only ─────────────────────── -->
+    <div *ngIf="!isEdit" class="user-picker-section">
 
-    <!-- Row 1: Organization Name -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Owner Account (optional)</mat-label>
+        <input
+          matInput
+          formControlName="userSearch"
+          placeholder="Search by name or email…"
+          [matAutocomplete]="userAuto"
+          autocomplete="off">
+        <mat-icon matPrefix>manage_accounts</mat-icon>
+
+        <!-- Clear button — only shown after a user is selected -->
+        <button
+          *ngIf="selectedUserId"
+          matSuffix
+          mat-icon-button
+          type="button"
+          aria-label="Clear selection"
+          (click)="clearUserSelection()">
+          <mat-icon>close</mat-icon>
+        </button>
+
+        <mat-autocomplete
+          #userAuto="matAutocomplete"
+          (optionSelected)="onUserSelected($event.option.value)">
+          <mat-option *ngFor="let u of filteredUsers" [value]="u">
+            <div class="user-option">
+              <mat-icon class="user-option-icon">person</mat-icon>
+              <div class="user-option-text">
+                <span class="user-option-name">{{ u.fullName }}</span>
+                <span class="user-option-email">{{ u.email }}</span>
+              </div>
+            </div>
+          </mat-option>
+          <mat-option *ngIf="filteredUsers.length === 0" [disabled]="true" class="no-results">
+            No matching accounts found.
+          </mat-option>
+        </mat-autocomplete>
+
+        <!-- Show resolved ID pill once a user is selected -->
+        <mat-hint *ngIf="selectedUserId" class="hint-linked">
+          <mat-icon>check_circle</mat-icon>
+          Linked to: {{ form.get('userSearch')!.value }}
+        </mat-hint>
+        <mat-hint *ngIf="!selectedUserId">
+          Leave blank if the tenant hasn't registered an account yet — you can link them later.
+        </mat-hint>
+      </mat-form-field>
+
+    </div>
+
+    <!-- ── Organization Name ───────────────────────────────────────────── -->
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Organization Name</mat-label>
       <input matInput formControlName="organizationName" placeholder="e.g. Sunrise Trading PLC">
@@ -39,7 +71,7 @@
       <mat-error *ngIf="organizationName.hasError('maxlength')">Max 150 characters.</mat-error>
     </mat-form-field>
 
-    <!-- Row 2: TIN + Phone -->
+    <!-- ── TIN + Phone ─────────────────────────────────────────────────── -->
     <div class="form-row">
       <mat-form-field appearance="outline">
         <mat-label>TIN (Tax ID)</mat-label>
@@ -58,7 +90,7 @@
       </mat-form-field>
     </div>
 
-    <!-- Row 3: Business Type -->
+    <!-- ── Business Type ───────────────────────────────────────────────── -->
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Business Type</mat-label>
       <mat-select formControlName="businessType">
@@ -68,7 +100,7 @@
       <mat-error *ngIf="businessType.hasError('required')">Business type is required.</mat-error>
     </mat-form-field>
 
-    <!-- Row 4: Contact Person + Email -->
+    <!-- ── Contact Person + Email ──────────────────────────────────────── -->
     <div class="form-row">
       <mat-form-field appearance="outline">
         <mat-label>Contact Person</mat-label>
@@ -88,12 +120,55 @@
       </mat-form-field>
     </div>
 
-    <!-- Active toggle — edit only -->
+    <!-- ── Active toggle — edit only ──────────────────────────────────── -->
     <div class="toggle-row" *ngIf="isEdit">
       <mat-slide-toggle formControlName="isActive" color="primary">
         Tenant is Active
       </mat-slide-toggle>
       <span class="toggle-hint">Inactive tenants cannot be assigned to new leases.</span>
+    </div>
+
+    <!-- ── Unit Reservation — create mode only ────────────────────────── -->
+    <div *ngIf="!isEdit" class="reservation-section">
+      <div class="reservation-header">
+        <mat-icon class="reservation-icon">bookmark_added</mat-icon>
+        <div>
+          <span class="reservation-title">Reserve a Unit <span class="optional-label">(optional)</span></span>
+          <span class="reservation-subtitle">Hold a unit for this tenant now. You can formalize it into a lease later.</span>
+        </div>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Unit to Reserve</mat-label>
+        <mat-icon matPrefix>apartment</mat-icon>
+
+        <mat-spinner
+          *ngIf="loadingUnits"
+          diameter="18"
+          matSuffix
+          class="unit-loading-spinner">
+        </mat-spinner>
+
+        <mat-select [(ngModel)]="selectedUnitId" [ngModelOptions]="{standalone: true}">
+          <!-- Explicit "no reservation" option -->
+          <mat-option [value]="null">— No reservation —</mat-option>
+          <mat-option *ngFor="let u of availableUnits" [value]="u.id">
+            {{ u.unitNumber }} — Floor {{ u.floorNumber }} ({{ u.unitType }})
+            <span class="unit-rent"> · ETB {{ u.monthlyRent | number }}</span>
+          </mat-option>
+        </mat-select>
+
+        <mat-hint *ngIf="!loadingUnits && availableUnits.length === 0">
+          No available units right now — you can reserve one from the Units page later.
+        </mat-hint>
+        <mat-hint *ngIf="!loadingUnits && availableUnits.length > 0 && !selectedUnitId">
+          Selecting a unit marks it as Reserved for this tenant immediately after registration.
+        </mat-hint>
+        <mat-hint *ngIf="selectedUnitId" class="hint-reserved">
+          <mat-icon>check_circle</mat-icon>
+          This unit will be marked Reserved once you register the tenant.
+        </mat-hint>
+      </mat-form-field>
     </div>
 
   </form>

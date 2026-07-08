@@ -7,31 +7,36 @@ namespace BMS.Application.Services;
 
 public class InvoiceService : IInvoiceService
 {
-    private readonly IInvoiceRepository  _invoiceRepository;
-    private readonly ILeaseRepository    _leaseRepository;
-    private readonly ICurrentUserService _currentUser;
+    private readonly IInvoiceRepository      _invoiceRepository;
+    private readonly ILeaseRepository        _leaseRepository;
+    private readonly ICurrentUserService     _currentUser;
+    private readonly ITenantOwnershipResolver _ownershipResolver;
 
     public InvoiceService(
-        IInvoiceRepository invoiceRepository,
-        ILeaseRepository leaseRepository,
-        ICurrentUserService currentUser)
+        IInvoiceRepository      invoiceRepository,
+        ILeaseRepository        leaseRepository,
+        ICurrentUserService     currentUser,
+        ITenantOwnershipResolver ownershipResolver)
     {
         _invoiceRepository = invoiceRepository;
         _leaseRepository   = leaseRepository;
         _currentUser       = currentUser;
+        _ownershipResolver = ownershipResolver;
     }
 
     public async Task<IEnumerable<InvoiceDto>> GetAllAsync()
     {
-        if (_currentUser.IsViewer)
-        {
-            if (!_currentUser.TenantId.HasValue)
-                return Enumerable.Empty<InvoiceDto>();
+        var ownedIds = await _ownershipResolver.GetOwnedTenantIdsAsync();
 
-            return await _invoiceRepository.GetByTenantIdAsync(_currentUser.TenantId.Value);
-        }
+        if (ownedIds is null)
+            return await _invoiceRepository.GetAllAsync();
 
-        return await _invoiceRepository.GetAllAsync();
+        if (ownedIds.Count == 0)
+            return Enumerable.Empty<InvoiceDto>();
+
+        var tasks   = ownedIds.Select(tid => _invoiceRepository.GetByTenantIdAsync(tid));
+        var results = await Task.WhenAll(tasks);
+        return results.SelectMany(x => x);
     }
 
     public async Task<IEnumerable<InvoiceDto>> GetByLeaseIdAsync(int leaseId)
@@ -40,7 +45,9 @@ public class InvoiceService : IInvoiceService
         if (lease is null)
             throw new KeyNotFoundException($"Lease {leaseId} not found.");
 
-        DataScope.EnsureViewerTenantAccess(_currentUser, lease.TenantId);
+        var ownedIds = await _ownershipResolver.GetOwnedTenantIdsAsync();
+        DataScope.EnsureViewerOwnedTenantAccess(ownedIds, lease.TenantId);
+
         return await _invoiceRepository.GetByLeaseIdAsync(leaseId);
     }
 
@@ -52,19 +59,21 @@ public class InvoiceService : IInvoiceService
 
     public async Task<IEnumerable<InvoiceDto>> GetOverdueAsync()
     {
-        var overdue = (await _invoiceRepository.GetOverdueAsync()).ToList();
+        var overdue  = (await _invoiceRepository.GetOverdueAsync()).ToList();
+        var ownedIds = await _ownershipResolver.GetOwnedTenantIdsAsync();
 
-        if (!_currentUser.IsViewer)
+        if (ownedIds is null)
             return overdue;
 
-        if (!_currentUser.TenantId.HasValue)
+        if (ownedIds.Count == 0)
             return Enumerable.Empty<InvoiceDto>();
 
-        var tenantInvoiceIds = (await _invoiceRepository.GetByTenantIdAsync(_currentUser.TenantId.Value))
-            .Select(i => i.Id)
-            .ToHashSet();
+        // Collect invoice IDs belonging to the viewer's owned tenants
+        var tasks           = ownedIds.Select(tid => _invoiceRepository.GetByTenantIdAsync(tid));
+        var results         = await Task.WhenAll(tasks);
+        var ownedInvoiceIds = results.SelectMany(x => x).Select(i => i.Id).ToHashSet();
 
-        return overdue.Where(i => tenantInvoiceIds.Contains(i.Id));
+        return overdue.Where(i => ownedInvoiceIds.Contains(i.Id));
     }
 
     public async Task<InvoiceDto> GetByIdAsync(int id)
@@ -75,7 +84,10 @@ public class InvoiceService : IInvoiceService
 
         var tenantId = await _invoiceRepository.GetTenantIdForInvoiceAsync(id);
         if (tenantId.HasValue)
-            DataScope.EnsureViewerTenantAccess(_currentUser, tenantId.Value);
+        {
+            var ownedIds = await _ownershipResolver.GetOwnedTenantIdsAsync();
+            DataScope.EnsureViewerOwnedTenantAccess(ownedIds, tenantId.Value);
+        }
 
         return invoice;
     }
@@ -90,7 +102,7 @@ public class InvoiceService : IInvoiceService
 
     public async Task<InvoiceDto> IssueAsync(int id)
     {
-        await GetByIdAsync(id);
+        await GetByIdAsync(id); // enforces scoping
 
         if (!await _invoiceRepository.ExistsAsync(id))
             throw new KeyNotFoundException($"Invoice {id} not found.");
@@ -101,7 +113,7 @@ public class InvoiceService : IInvoiceService
 
     public async Task<InvoiceDto> CancelAsync(int id)
     {
-        await GetByIdAsync(id);
+        await GetByIdAsync(id); // enforces scoping
 
         if (!await _invoiceRepository.ExistsAsync(id))
             throw new KeyNotFoundException($"Invoice {id} not found.");

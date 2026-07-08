@@ -23,9 +23,19 @@ public class UnitConfiguration : IEntityTypeConfiguration<Unit>
         builder.Property(u => u.Description)
                .HasMaxLength(500);
 
+        // Nullable FK — which tenant this unit is reserved for (null when not reserved)
+        builder.Property(u => u.ReservedForTenantId)
+               .IsRequired(false);
+
+        builder.HasOne(u => u.ReservedForTenant)
+               .WithMany()
+               .HasForeignKey(u => u.ReservedForTenantId)
+               .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasMany(u => u.Leases)
                .WithOne(l => l.Unit)
                .HasForeignKey(l => l.UnitId)
                .OnDelete(DeleteBehavior.Restrict);
     }
 }
+

@@ -51,9 +51,10 @@ public class AuthService : IAuthService
         if (!passwordValid)
             throw new UnauthorizedAccessException("Invalid credentials.");
 
-        var role     = await _userRepository.GetRoleAsync(user.Id) ?? "Viewer";
-        var tenantId = await _userRepository.GetTenantIdAsync(user.Id);
-        var token    = _jwtTokenService.GenerateToken(user.Id, user.Email, user.FullName, role, tenantId);
+        var role   = await _userRepository.GetRoleAsync(user.Id) ?? "Viewer";
+        // No tenant ID in token — ownership is resolved at query time via
+        // ITenantOwnershipResolver so it stays accurate after re-linking.
+        var token  = _jwtTokenService.GenerateToken(user.Id, user.Email, user.FullName, role);
         var expiry = _jwtTokenService.GetExpiry();
 
         return new AuthResponseDto

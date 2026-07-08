@@ -8,6 +8,7 @@ import {
   TenantDto,
   CreateTenantDto,
   UpdateTenantDto,
+  LinkTenantUserDto,
   LegalDocumentDto,
   CreateLegalDocumentDto,
   RegisteredUserDto,
@@ -29,7 +30,7 @@ export class TenantService {
       .pipe(map(r => r.data ?? []));
   }
 
-  /** All roles: only tenants linked to the calling user */
+  /** Viewer: only tenants linked to the calling user */
   getMyTenants(): Observable<TenantDto[]> {
     return this.http
       .get<ApiResponse<TenantDto[]>>(`${this.apiUrl}/mine`)
@@ -42,6 +43,7 @@ export class TenantService {
       .pipe(map(r => r.data!));
   }
 
+  /** Create a tenant. dto.appUserId is optional — omit to create unlinked. */
   create(dto: CreateTenantDto): Observable<TenantDto> {
     return this.http
       .post<ApiResponse<TenantDto>>(this.apiUrl, dto)
@@ -61,8 +63,21 @@ export class TenantService {
   }
 
   /**
-   * Admin/Manager: list of all registered user accounts (email + fullName).
-   * Used by the tenant-creation form so the admin can pick/validate a user email.
+   * PUT /api/tenants/{id}/link-user
+   * Link an existing tenant to a registered Viewer account.
+   * Pass force=true to overwrite an existing link (triggers confirm dialog in UI).
+   */
+  linkUser(tenantId: number, dto: LinkTenantUserDto): Observable<TenantDto> {
+    return this.http
+      .put<ApiResponse<TenantDto>>(`${this.apiUrl}/${tenantId}/link-user`, dto)
+      .pipe(map(r => r.data!));
+  }
+
+  /**
+   * GET /api/tenants/registered-users — Admin/Manager only.
+   * Returns id + email + fullName of every active registered user.
+   * Used by the tenant form's user-picker to let admin select by name/email
+   * and submit the user's Id as AppUserId.
    */
   getRegisteredUsers(): Observable<RegisteredUserDto[]> {
     return this.http

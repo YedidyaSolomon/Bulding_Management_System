@@ -41,4 +41,27 @@ export class UnitService {
       .delete<ApiResponse<unknown>>(`${this.url}/${id}`)
       .pipe(map(() => void 0));
   }
+
+  /**
+   * GET /api/units/selectable-for-lease?tenantId={tenantId}
+   * Returns Available units + the unit Reserved for this specific tenant.
+   * The reserved unit has isReservedForRequestedTenant=true so the UI can pin it.
+   */
+  getSelectableForLease(tenantId: number): Observable<UnitDto[]> {
+    return this.http
+      .get<ApiResponse<UnitDto[]>>(`${this.url}/selectable-for-lease`, {
+        params: { tenantId: tenantId.toString() },
+      })
+      .pipe(map(r => r.data ?? []));
+  }
+
+  /**
+   * POST /api/units/{id}/reserve
+   * Marks the unit as Reserved for the given tenant.
+   */
+  reserve(unitId: number, tenantId: number): Observable<UnitDto> {
+    return this.http
+      .post<ApiResponse<UnitDto>>(`${this.url}/${unitId}/reserve`, { tenantId })
+      .pipe(map(r => r.data!));
+  }
 }

@@ -39,6 +39,9 @@ public static class InfrastructureServiceExtensions
         services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
         services.AddScoped<IJwtTokenService, JwtTokenService>();
 
+        // ── Ownership resolver (scoped — one DB query per request, cached by DI) ──
+        services.AddScoped<ITenantOwnershipResolver, TenantOwnershipResolver>();
+
         // ── Repository registrations ─────────────────────────────────────────
         services.AddScoped<IUserRepository,         UserRepository>();
         services.AddScoped<IUnitRepository,         UnitRepository>();

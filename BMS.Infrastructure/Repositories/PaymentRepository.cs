@@ -47,7 +47,7 @@ public class PaymentRepository : IPaymentRepository
             .Include(p => p.Invoice)
                 .ThenInclude(i => i.Lease)
                     .ThenInclude(l => l.Tenant)
-            .Where(p => p.Invoice.Lease.Tenant.UserId == userId)
+            .Where(p => p.Invoice.Lease.Tenant.AppUserId == userId)
             .OrderByDescending(p => p.PaymentDate)
             .ToListAsync();
         return payments.Select(MapToDto);

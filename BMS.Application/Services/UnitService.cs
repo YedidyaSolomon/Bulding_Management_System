@@ -80,4 +80,15 @@ public class UnitService : IUnitService
 
         await _unitRepository.DeleteAsync(id);
     }
+
+    public Task<IEnumerable<UnitDto>> GetSelectableForLeaseAsync(int tenantId) =>
+        _unitRepository.GetSelectableForLeaseAsync(tenantId);
+
+    public async Task<UnitDto> ReserveAsync(int unitId, int tenantId)
+    {
+        if (!await _unitRepository.ExistsAsync(unitId))
+            throw new KeyNotFoundException($"Unit {unitId} not found.");
+
+        return await _unitRepository.ReserveAsync(unitId, tenantId);
+    }
 }

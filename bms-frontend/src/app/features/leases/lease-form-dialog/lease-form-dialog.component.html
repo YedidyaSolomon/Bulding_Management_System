@@ -2,50 +2,76 @@
   <mat-icon class="dialog-icon">{{ isEdit ? 'edit_document' : 'post_add' }}</mat-icon>
   <div>
     <h2 mat-dialog-title>{{ isEdit ? 'Edit / Renew Lease' : 'Create Lease' }}</h2>
-    <p>{{ isEdit ? 'Update the end date, rent, or deposit for this lease.' : 'Set up a new lease between a unit and a tenant.' }}</p>
+    <p>{{ isEdit ? 'Update the end date, rent, or deposit for this lease.' : 'Set up a new lease between a tenant and a unit.' }}</p>
   </div>
 </div>
 
 <mat-dialog-content>
 
-  <!-- Dropdown loading indicator -->
+  <!-- Tenant / dropdown loading indicator -->
   <div class="loading-row" *ngIf="loadingDropdowns">
     <mat-spinner diameter="20"></mat-spinner>
-    <span>Loading units and tenants…</span>
+    <span>Loading tenants…</span>
   </div>
 
   <form [formGroup]="form" novalidate class="lease-form" *ngIf="!loadingDropdowns">
 
-    <!-- ── Row 1: Unit + Tenant ──────────────────────────────────────── -->
-    <div class="form-row">
+    <!-- ── Row 1: Tenant (always first in create mode) ───────────────── -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Tenant</mat-label>
+      <mat-icon matPrefix>business</mat-icon>
+      <mat-select formControlName="tenantId">
+        <mat-option *ngFor="let t of tenants" [value]="t.id">
+          {{ t.organizationName }}
+        </mat-option>
+      </mat-select>
+      <mat-hint *ngIf="!isEdit">Select a tenant first — the unit dropdown will update automatically.</mat-hint>
+      <mat-error *ngIf="tenantId.hasError('required')">Tenant is required.</mat-error>
+    </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Unit</mat-label>
-        <mat-icon matPrefix>apartment</mat-icon>
-        <mat-select formControlName="unitId">
-          <mat-option *ngFor="let u of units" [value]="u.id">
-            {{ u.unitNumber }} — Floor {{ u.floorNumber }} ({{ u.unitType }})
-          </mat-option>
-        </mat-select>
-        <mat-hint *ngIf="!isEdit">Only available units are shown.</mat-hint>
-        <mat-error *ngIf="unitId.hasError('required')">Unit is required.</mat-error>
-      </mat-form-field>
+    <!-- ── Row 2: Unit (reactive, enabled only after tenant is chosen) ── -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Unit</mat-label>
+      <mat-icon matPrefix>apartment</mat-icon>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Tenant</mat-label>
-        <mat-icon matPrefix>business</mat-icon>
-        <mat-select formControlName="tenantId">
-          <mat-option *ngFor="let t of tenants" [value]="t.id">
-            {{ t.organizationName }}
-          </mat-option>
-        </mat-select>
-        <mat-hint *ngIf="!isEdit">Only active tenants are shown.</mat-hint>
-        <mat-error *ngIf="tenantId.hasError('required')">Tenant is required.</mat-error>
-      </mat-form-field>
+      <!-- Unit loading spinner shown inside the field -->
+      <mat-spinner
+        *ngIf="loadingUnits"
+        diameter="18"
+        matSuffix
+        class="unit-loading-spinner">
+      </mat-spinner>
 
-    </div>
+      <mat-select formControlName="unitId">
+        <mat-option *ngFor="let u of units" [value]="u.id">
+          <span class="unit-option">
+            <span class="unit-option-label">
+              {{ u.unitNumber }} — Floor {{ u.floorNumber }} ({{ u.unitType }})
+            </span>
+            <!-- Badge only shown for the unit reserved for this tenant -->
+            <span
+              *ngIf="u.isReservedForRequestedTenant"
+              class="reserved-badge"
+              aria-label="Reserved for this tenant">
+              Reserved for this tenant
+            </span>
+          </span>
+        </mat-option>
+      </mat-select>
 
-    <!-- ── Row 2: Start Date + End Date (mat-datepicker) ────────────── -->
+      <!-- Contextual hints -->
+      <mat-hint *ngIf="noTenantSelected">
+        <mat-icon class="hint-icon">info_outline</mat-icon>
+        Select a tenant first to see their reserved unit and other available units.
+      </mat-hint>
+      <mat-hint *ngIf="!isEdit && !noTenantSelected && !loadingUnits">
+        Showing available units{{ hasReservedUnit ? ' and the unit reserved for this tenant' : '' }}.
+      </mat-hint>
+
+      <mat-error *ngIf="unitId.hasError('required')">Unit is required.</mat-error>
+    </mat-form-field>
+
+    <!-- ── Row 3: Start Date + End Date ─────────────────────────────── -->
     <div class="form-row date-row">
 
       <!-- Start Date -->
@@ -62,12 +88,8 @@
         <mat-datepicker-toggle matIconSuffix [for]="startPicker">
           <mat-icon matDatepickerToggleIcon>calendar_month</mat-icon>
         </mat-datepicker-toggle>
-        <mat-datepicker
-          #startPicker
-          color="primary">
-        </mat-datepicker>
+        <mat-datepicker #startPicker color="primary"></mat-datepicker>
 
-        <!-- Validation errors — shown after touch/submit -->
         <mat-error *ngIf="startDate.hasError('required')">
           Start date is required.
         </mat-error>
@@ -95,12 +117,8 @@
         <mat-datepicker-toggle matIconSuffix [for]="endPicker">
           <mat-icon matDatepickerToggleIcon>calendar_month</mat-icon>
         </mat-datepicker-toggle>
-        <mat-datepicker
-          #endPicker
-          color="primary">
-        </mat-datepicker>
+        <mat-datepicker #endPicker color="primary"></mat-datepicker>
 
-        <!-- Validation errors -->
         <mat-error *ngIf="endDate.hasError('required') && !endDate.hasError('dateRange')">
           End date is required.
         </mat-error>
@@ -123,7 +141,7 @@
       invalid days already greyed out.
     </p>
 
-    <!-- ── Row 3: Monthly Rent + Deposit ────────────────────────────── -->
+    <!-- ── Row 4: Monthly Rent + Deposit ────────────────────────────── -->
     <div class="form-row">
 
       <mat-form-field appearance="outline">
@@ -153,7 +171,7 @@
     mat-raised-button
     color="primary"
     (click)="onSave()"
-    [disabled]="loading || loadingDropdowns || form.invalid"
+    [disabled]="loading || loadingDropdowns || loadingUnits || form.invalid"
     [matTooltip]="form.invalid ? 'Please fix validation errors before submitting.' : ''">
     <mat-spinner diameter="18" *ngIf="loading" />
     <mat-icon *ngIf="!loading">{{ isEdit ? 'save' : 'post_add' }}</mat-icon>

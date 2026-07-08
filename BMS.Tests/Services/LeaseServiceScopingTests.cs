@@ -1,4 +1,5 @@
 using BMS.Application.DTOs.Leases;
+using BMS.Application.Exceptions;
 using BMS.Application.Interfaces;
 using BMS.Application.Interfaces.Repositories;
 using BMS.Application.Services;
@@ -9,254 +10,283 @@ using Xunit;
 namespace BMS.Tests.Services;
 
 /// <summary>
-/// Verifies that LeaseService correctly enforces Viewer data scoping:
+/// Verifies that LeaseService correctly enforces Viewer data scoping
+/// using the new ITenantOwnershipResolver architecture.
 ///
-///   GetAllAsync   — Viewer receives only their own tenant's leases.
-///   GetAllAsync   — Admin/Manager receive all leases unfiltered.
-///   GetByIdAsync  — Viewer accessing their own lease succeeds.
-///   GetByIdAsync  — Viewer accessing a different tenant's lease throws.
+///   GetAllAsync   — Viewer with one tenant sees only that tenant's leases.
+///   GetAllAsync   — Viewer with TWO tenants sees combined leases from both.
+///   GetAllAsync   — Viewer with no tenants receives empty list.
+///   GetAllAsync   — Admin/Manager receives all leases.
+///   GetByIdAsync  — Viewer accessing own tenant's lease succeeds.
+///   GetByIdAsync  — Viewer accessing different tenant's lease throws 403.
 ///   GetByIdAsync  — Admin accessing any lease succeeds.
-///   GetAllAsync   — Viewer with no linked tenant receives empty list.
+///   GetByTenantId — Viewer requesting own tenantId succeeds.
+///   GetByTenantId — Viewer requesting other tenantId throws 403.
+///   GetByTenantId — Admin requesting any tenantId succeeds.
 /// </summary>
 public class LeaseServiceScopingTests
 {
-    // ── Shared test data ──────────────────────────────────────────────────────
+    private const int TenantA    = 10;
+    private const int TenantB    = 20;
+    private const int OtherTenant = 99;
 
-    private const int ViewerTenantId  = 10;
-    private const int OtherTenantId   = 99;
-
-    /// <summary>Two leases belonging to the Viewer's tenant.</summary>
-    private static readonly IEnumerable<LeaseDto> ViewerLeases = new[]
+    private static readonly IEnumerable<LeaseDto> TenantALeases = new[]
     {
-        MakeLease(id: 1, tenantId: ViewerTenantId),
-        MakeLease(id: 2, tenantId: ViewerTenantId),
+        MakeLease(id: 1, tenantId: TenantA),
+        MakeLease(id: 2, tenantId: TenantA),
     };
 
-    /// <summary>All leases in the system (Viewer's + another tenant's).</summary>
+    private static readonly IEnumerable<LeaseDto> TenantBLeases = new[]
+    {
+        MakeLease(id: 3, tenantId: TenantB),
+        MakeLease(id: 4, tenantId: TenantB),
+    };
+
     private static readonly IEnumerable<LeaseDto> AllLeases = new[]
     {
-        MakeLease(id: 1, tenantId: ViewerTenantId),
-        MakeLease(id: 2, tenantId: ViewerTenantId),
-        MakeLease(id: 3, tenantId: OtherTenantId),
-        MakeLease(id: 4, tenantId: OtherTenantId),
+        MakeLease(id: 1, tenantId: TenantA),
+        MakeLease(id: 2, tenantId: TenantA),
+        MakeLease(id: 3, tenantId: TenantB),
+        MakeLease(id: 4, tenantId: TenantB),
+        MakeLease(id: 5, tenantId: OtherTenant),
     };
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // GetAllAsync
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── GetAllAsync ───────────────────────────────────────────────────────────
 
     [Fact]
-    public async Task GetAllAsync_Viewer_ReturnsOnlyOwnTenantLeases()
+    public async Task GetAllAsync_Viewer_OneTenant_ReturnsOnlyThatTenantLeases()
     {
-        // Arrange
         var (service, _) = BuildService(
-            currentUser: CurrentUserFactory.Viewer(tenantId: ViewerTenantId),
-            byTenantResult: ViewerLeases);
+            currentUser:      CurrentUserFactory.Viewer(),
+            resolver:         OwnershipResolverFactory.ForTenants(TenantA),
+            byTenantResults:  new() { [TenantA] = TenantALeases });
 
-        // Act
         var result = await service.GetAllAsync();
 
-        // Assert — all returned leases must belong to the Viewer's tenant
-        Assert.NotEmpty(result);
-        Assert.All(result, l => Assert.Equal(ViewerTenantId, l.TenantId));
         Assert.Equal(2, result.Count());
+        Assert.All(result, l => Assert.Equal(TenantA, l.TenantId));
+    }
+
+    [Fact]
+    public async Task GetAllAsync_Viewer_TwoTenants_ReturnsCombinedLeases()
+    {
+        // Key test for the one-to-many scenario:
+        // A Viewer who owns TenantA AND TenantB should see leases from BOTH.
+        var (service, _) = BuildService(
+            currentUser:     CurrentUserFactory.Viewer(),
+            resolver:        OwnershipResolverFactory.ForTenants(TenantA, TenantB),
+            byTenantResults: new()
+            {
+                [TenantA] = TenantALeases,
+                [TenantB] = TenantBLeases,
+            });
+
+        var result = await service.GetAllAsync();
+
+        Assert.Equal(4, result.Count());
+        Assert.Contains(result, l => l.TenantId == TenantA);
+        Assert.Contains(result, l => l.TenantId == TenantB);
+        // Must NOT include the third unrelated tenant
+        Assert.DoesNotContain(result, l => l.TenantId == OtherTenant);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_Viewer_NoTenants_ReturnsEmpty()
+    {
+        var (service, _) = BuildService(
+            currentUser: CurrentUserFactory.Viewer(),
+            resolver:    OwnershipResolverFactory.Empty());
+
+        var result = await service.GetAllAsync();
+
+        Assert.Empty(result);
     }
 
     [Fact]
     public async Task GetAllAsync_Admin_ReturnsAllLeases()
     {
-        // Arrange
         var (service, _) = BuildService(
-            currentUser: CurrentUserFactory.Admin(),
-            getAllResult: AllLeases);
+            currentUser:   CurrentUserFactory.Admin(),
+            resolver:      OwnershipResolverFactory.Bypass(),
+            getAllResult:   AllLeases);
 
-        // Act
         var result = await service.GetAllAsync();
 
-        // Assert — Admin sees everything
-        Assert.Equal(4, result.Count());
+        Assert.Equal(5, result.Count());
     }
 
     [Fact]
     public async Task GetAllAsync_Manager_ReturnsAllLeases()
     {
-        // Arrange
         var (service, _) = BuildService(
-            currentUser: CurrentUserFactory.Manager(),
-            getAllResult: AllLeases);
+            currentUser:  CurrentUserFactory.Manager(),
+            resolver:     OwnershipResolverFactory.Bypass(),
+            getAllResult:  AllLeases);
 
-        // Act
         var result = await service.GetAllAsync();
 
-        Assert.Equal(4, result.Count());
+        Assert.Equal(5, result.Count());
     }
 
-    [Fact]
-    public async Task GetAllAsync_ViewerWithNoTenant_ReturnsEmptyList()
-    {
-        // Arrange — viewer account exists but has no linked tenant yet
-        var (service, _) = BuildService(
-            currentUser: CurrentUserFactory.ViewerWithNoTenant());
-
-        // Act
-        var result = await service.GetAllAsync();
-
-        // Assert — must return empty, not throw
-        Assert.Empty(result);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // GetByIdAsync — ownership enforcement
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── GetByIdAsync ──────────────────────────────────────────────────────────
 
     [Fact]
-    public async Task GetByIdAsync_Viewer_OwnLease_ReturnsLease()
+    public async Task GetByIdAsync_Viewer_OwnTenantLease_ReturnsLease()
     {
-        // Arrange — lease belongs to Viewer's tenant
-        var ownLease = MakeLease(id: 1, tenantId: ViewerTenantId);
+        var ownLease = MakeLease(id: 1, tenantId: TenantA);
         var (service, _) = BuildService(
-            currentUser: CurrentUserFactory.Viewer(tenantId: ViewerTenantId),
-            byIdResult: ownLease);
+            currentUser: CurrentUserFactory.Viewer(),
+            resolver:    OwnershipResolverFactory.ForTenants(TenantA),
+            byIdResult:  ownLease);
 
-        // Act
         var result = await service.GetByIdAsync(1);
 
-        // Assert — should succeed without exception
         Assert.NotNull(result);
         Assert.Equal(1, result.Id);
-        Assert.Equal(ViewerTenantId, result.TenantId);
     }
 
     [Fact]
-    public async Task GetByIdAsync_Viewer_OtherTenantLease_ThrowsKeyNotFoundException()
+    public async Task GetByIdAsync_Viewer_TwoTenants_CanAccessBoth()
     {
-        // Arrange — lease belongs to a DIFFERENT tenant; Viewer should not see it.
-        // DataScope.EnsureViewerTenantAccess throws KeyNotFoundException to mask the resource.
-        var otherLease = MakeLease(id: 3, tenantId: OtherTenantId);
+        // Viewer owning TenantA and TenantB should be able to get a lease from TenantB
+        var tenantBLease = MakeLease(id: 3, tenantId: TenantB);
         var (service, _) = BuildService(
-            currentUser: CurrentUserFactory.Viewer(tenantId: ViewerTenantId),
-            byIdResult: otherLease);
+            currentUser: CurrentUserFactory.Viewer(),
+            resolver:    OwnershipResolverFactory.ForTenants(TenantA, TenantB),
+            byIdResult:  tenantBLease);
 
-        // Act & Assert
-        await Assert.ThrowsAsync<KeyNotFoundException>(
-            () => service.GetByIdAsync(3));
+        var result = await service.GetByIdAsync(3);
+
+        Assert.Equal(3, result.Id);
+        Assert.Equal(TenantB, result.TenantId);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_Viewer_UnownedTenantLease_ThrowsForbidden()
+    {
+        var otherLease = MakeLease(id: 5, tenantId: OtherTenant);
+        var (service, _) = BuildService(
+            currentUser: CurrentUserFactory.Viewer(),
+            resolver:    OwnershipResolverFactory.ForTenants(TenantA, TenantB),
+            byIdResult:  otherLease);
+
+        await Assert.ThrowsAsync<ForbiddenAccessException>(
+            () => service.GetByIdAsync(5));
     }
 
     [Fact]
     public async Task GetByIdAsync_Admin_AnyLease_ReturnsLease()
     {
-        // Arrange — Admin requests a lease belonging to any tenant
-        var anyLease = MakeLease(id: 3, tenantId: OtherTenantId);
+        var anyLease = MakeLease(id: 5, tenantId: OtherTenant);
         var (service, _) = BuildService(
             currentUser: CurrentUserFactory.Admin(),
-            byIdResult: anyLease);
+            resolver:    OwnershipResolverFactory.Bypass(),
+            byIdResult:  anyLease);
 
-        // Act
-        var result = await service.GetByIdAsync(3);
+        var result = await service.GetByIdAsync(5);
 
-        // Assert — Admin sees it
-        Assert.Equal(3, result.Id);
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_Manager_AnyLease_ReturnsLease()
-    {
-        var anyLease = MakeLease(id: 3, tenantId: OtherTenantId);
-        var (service, _) = BuildService(
-            currentUser: CurrentUserFactory.Manager(),
-            byIdResult: anyLease);
-
-        var result = await service.GetByIdAsync(3);
-
-        Assert.Equal(3, result.Id);
+        Assert.Equal(5, result.Id);
     }
 
     [Fact]
     public async Task GetByIdAsync_NonExistentLease_ThrowsKeyNotFoundException()
     {
-        // Arrange — repository returns null (lease does not exist)
         var (service, _) = BuildService(
             currentUser: CurrentUserFactory.Admin(),
-            byIdResult: null);   // simulates "not found" from DB
+            resolver:    OwnershipResolverFactory.Bypass(),
+            byIdResult:  null);
 
-        // Act & Assert — service must surface 404
         await Assert.ThrowsAsync<KeyNotFoundException>(
             () => service.GetByIdAsync(999));
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // GetByTenantIdAsync — Viewer can only request their own tenantId
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── GetByTenantIdAsync ────────────────────────────────────────────────────
 
     [Fact]
     public async Task GetByTenantIdAsync_Viewer_OwnTenantId_ReturnsLeases()
     {
         var (service, _) = BuildService(
-            currentUser: CurrentUserFactory.Viewer(tenantId: ViewerTenantId),
-            byTenantResult: ViewerLeases);
+            currentUser:     CurrentUserFactory.Viewer(),
+            resolver:        OwnershipResolverFactory.ForTenants(TenantA),
+            byTenantResults: new() { [TenantA] = TenantALeases });
 
-        var result = await service.GetByTenantIdAsync(ViewerTenantId);
+        var result = await service.GetByTenantIdAsync(TenantA);
 
         Assert.Equal(2, result.Count());
     }
 
     [Fact]
-    public async Task GetByTenantIdAsync_Viewer_OtherTenantId_ThrowsKeyNotFoundException()
+    public async Task GetByTenantIdAsync_Viewer_UnownedTenantId_ThrowsForbidden()
     {
         var (service, _) = BuildService(
-            currentUser: CurrentUserFactory.Viewer(tenantId: ViewerTenantId));
+            currentUser: CurrentUserFactory.Viewer(),
+            resolver:    OwnershipResolverFactory.ForTenants(TenantA));
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(
-            () => service.GetByTenantIdAsync(OtherTenantId));
+        await Assert.ThrowsAsync<ForbiddenAccessException>(
+            () => service.GetByTenantIdAsync(OtherTenant));
     }
 
     [Fact]
     public async Task GetByTenantIdAsync_Admin_AnyTenantId_ReturnsLeases()
     {
-        var otherLeases = AllLeases.Where(l => l.TenantId == OtherTenantId);
         var (service, _) = BuildService(
-            currentUser: CurrentUserFactory.Admin(),
-            byTenantResult: otherLeases);
+            currentUser:     CurrentUserFactory.Admin(),
+            resolver:        OwnershipResolverFactory.Bypass(),
+            byTenantResults: new() { [OtherTenant] = new[] { MakeLease(5, OtherTenant) } });
 
-        var result = await service.GetByTenantIdAsync(OtherTenantId);
+        var result = await service.GetByTenantIdAsync(OtherTenant);
 
-        Assert.Equal(2, result.Count());
+        Assert.Single(result);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Helpers
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── Admin/Manager bypass: confirms null resolver = all records returned ───
 
-    /// <summary>
-    /// Builds a fully mocked LeaseService.
-    /// Returns both the service and the underlying lease repository mock so
-    /// individual tests can verify call counts if needed.
-    /// </summary>
+    [Fact]
+    public async Task GetAllAsync_Admin_Bypass_ReturnsAllRecordsRegardlessOfTenantOwnership()
+    {
+        // Explicitly proves the bypass contract: with null resolver,
+        // Admin gets everything even though they own no tenants.
+        var (service, leaseMock) = BuildService(
+            currentUser: CurrentUserFactory.Admin(),
+            resolver:    OwnershipResolverFactory.Bypass(),
+            getAllResult: AllLeases);
+
+        var result = await service.GetAllAsync();
+
+        // Should have called GetAllAsync on the repo, NOT GetByTenantIdAsync
+        leaseMock.Verify(r => r.GetAllAsync(), Times.Once);
+        leaseMock.Verify(r => r.GetByTenantIdAsync(It.IsAny<int>()), Times.Never);
+        Assert.Equal(5, result.Count());
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
     private static (LeaseService service, Mock<ILeaseRepository> repoMock) BuildService(
-        ICurrentUserService currentUser,
-        IEnumerable<LeaseDto>? getAllResult    = null,
-        IEnumerable<LeaseDto>? byTenantResult = null,
-        LeaseDto?              byIdResult     = null)
+        ICurrentUserService                  currentUser,
+        ITenantOwnershipResolver             resolver,
+        IEnumerable<LeaseDto>?               getAllResult     = null,
+        Dictionary<int, IEnumerable<LeaseDto>>? byTenantResults = null,
+        LeaseDto?                            byIdResult      = null)
     {
         var leaseMock = new Mock<ILeaseRepository>();
         var unitMock  = new Mock<IUnitRepository>();
 
-        // GetAllAsync — returns all leases (used by Admin/Manager path)
         leaseMock
             .Setup(r => r.GetAllAsync())
             .ReturnsAsync(getAllResult ?? Enumerable.Empty<LeaseDto>());
 
-        // GetByTenantIdAsync — returns leases for a specific tenant
         leaseMock
             .Setup(r => r.GetByTenantIdAsync(It.IsAny<int>()))
-            .ReturnsAsync(byTenantResult ?? Enumerable.Empty<LeaseDto>());
+            .ReturnsAsync((int tid) =>
+                byTenantResults?.TryGetValue(tid, out var leases) == true
+                    ? leases
+                    : Enumerable.Empty<LeaseDto>());
 
-        // GetByIdAsync — returns the configured lease or null
         leaseMock
             .Setup(r => r.GetByIdAsync(It.IsAny<int>()))
             .ReturnsAsync(byIdResult);
 
-        var service = new LeaseService(leaseMock.Object, unitMock.Object, currentUser);
+        var service = new LeaseService(leaseMock.Object, unitMock.Object, currentUser, resolver);
         return (service, leaseMock);
     }
 

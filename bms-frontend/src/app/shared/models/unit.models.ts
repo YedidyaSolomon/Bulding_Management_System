@@ -1,12 +1,20 @@
 export interface UnitDto {
-  id:           number;
-  floorNumber:  number;
-  unitNumber:   string;
-  unitType:     string;
-  areaSqMeters: number;
-  monthlyRent:  number;
-  status:       string;
-  description:  string | null;
+  id:                          number;
+  floorNumber:                 number;
+  unitNumber:                  string;
+  unitType:                    string;
+  areaSqMeters:                number;
+  monthlyRent:                 number;
+  status:                      string;
+  description:                 string | null;
+  /** Populated only in selectable-for-lease responses. Null otherwise. */
+  reservedForTenantId:         number | null;
+  /**
+   * Populated only in selectable-for-lease responses.
+   * True when this unit is Reserved and the reservation matches the queried tenant —
+   * use this to pin it at the top of the unit dropdown with a "Reserved for this tenant" badge.
+   */
+  isReservedForRequestedTenant: boolean;
 }
 
 export interface CreateUnitDto {

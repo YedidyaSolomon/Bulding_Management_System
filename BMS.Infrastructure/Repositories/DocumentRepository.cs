@@ -28,7 +28,7 @@ public class DocumentRepository : IDocumentRepository
                 Id           = d.Id,
                 TenantId     = d.TenantId,
                 TenantName   = d.Tenant.OrganizationName,
-                UserId       = d.Tenant.UserId,
+                UserId       = d.Tenant.AppUserId,
                 DocumentType = d.DocumentType.ToString(),
                 ExpiryDate   = d.ExpiryDate!.Value,
             })

@@ -11,6 +11,12 @@ public class InvoiceDto
     public string   Status        { get; set; } = string.Empty;
     public int      PeriodMonth   { get; set; }
     public int      PeriodYear    { get; set; }
+
+    // Denormalised display fields — populated from Lease.Tenant and Lease.Unit
+    public int      TenantId      { get; set; }
+    public string   TenantName    { get; set; } = string.Empty;
+    public int      UnitId        { get; set; }
+    public string   UnitNumber    { get; set; } = string.Empty;
 }
 
 public class CreateInvoiceDto

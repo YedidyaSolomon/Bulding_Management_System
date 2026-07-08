@@ -1,5 +1,6 @@
 using BMS.Application.DTOs.Invoices;
 using BMS.Application.DTOs.Leases;
+using BMS.Application.Exceptions;
 using BMS.Application.Interfaces;
 using BMS.Application.Interfaces.Repositories;
 using BMS.Application.Services;
@@ -10,31 +11,34 @@ using Xunit;
 namespace BMS.Tests.Services;
 
 /// <summary>
-/// Verifies that InvoiceService correctly enforces Viewer data scoping:
+/// Verifies that InvoiceService correctly enforces Viewer data scoping
+/// using the new ITenantOwnershipResolver architecture.
 ///
-///   GetAllAsync   — Viewer receives only invoices for their own tenant.
-///   GetAllAsync   — Admin/Manager receive all invoices.
-///   GetByIdAsync  — Viewer accessing their own invoice succeeds.
-///   GetByIdAsync  — Viewer accessing another tenant's invoice throws.
-///   GetByIdAsync  — Admin accessing any invoice succeeds.
-///   GetAllAsync   — Viewer with no tenant receives empty list.
+///   GetAllAsync      — Viewer with one tenant sees only that tenant's invoices.
+///   GetAllAsync      — Viewer with TWO tenants sees combined invoices from both.
+///   GetAllAsync      — Viewer with no tenants receives empty list.
+///   GetAllAsync      — Admin/Manager receives all invoices.
+///   GetByIdAsync     — Viewer accessing own invoice succeeds.
+///   GetByIdAsync     — Viewer accessing other tenant's invoice throws 403.
+///   GetByIdAsync     — Admin accessing any invoice succeeds.
+///   GetByLeaseIdAsync — Viewer on own lease succeeds; other lease throws 403.
 /// </summary>
 public class InvoiceServiceScopingTests
 {
-    private const int ViewerTenantId = 10;
-    private const int OtherTenantId  = 99;
+    private const int TenantA    = 10;
+    private const int TenantB    = 20;
+    private const int OtherTenant = 99;
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // GetAllAsync
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── GetAllAsync ───────────────────────────────────────────────────────────
 
     [Fact]
-    public async Task GetAllAsync_Viewer_ReturnsOnlyOwnTenantInvoices()
+    public async Task GetAllAsync_Viewer_OneTenant_ReturnsOnlyOwnTenantInvoices()
     {
-        var viewerInvoices = MakeInvoiceList(ids: [1, 2]);
+        var viewerInvoices = MakeInvoiceList([1, 2]);
         var (service, _) = BuildService(
-            currentUser: CurrentUserFactory.Viewer(tenantId: ViewerTenantId),
-            byTenantResult: viewerInvoices);
+            currentUser:     CurrentUserFactory.Viewer(),
+            resolver:        OwnershipResolverFactory.ForTenants(TenantA),
+            byTenantResults: new() { [TenantA] = viewerInvoices });
 
         var result = await service.GetAllAsync();
 
@@ -42,12 +46,19 @@ public class InvoiceServiceScopingTests
     }
 
     [Fact]
-    public async Task GetAllAsync_Admin_ReturnsAllInvoices()
+    public async Task GetAllAsync_Viewer_TwoTenants_ReturnsCombinedInvoices()
     {
-        var all = MakeInvoiceList(ids: [1, 2, 3, 4]);
+        var tenantAInvoices = MakeInvoiceList([1, 2]);
+        var tenantBInvoices = MakeInvoiceList([3, 4]);
+
         var (service, _) = BuildService(
-            currentUser: CurrentUserFactory.Admin(),
-            getAllResult: all);
+            currentUser:     CurrentUserFactory.Viewer(),
+            resolver:        OwnershipResolverFactory.ForTenants(TenantA, TenantB),
+            byTenantResults: new()
+            {
+                [TenantA] = tenantAInvoices,
+                [TenantB] = tenantBInvoices,
+            });
 
         var result = await service.GetAllAsync();
 
@@ -55,28 +66,56 @@ public class InvoiceServiceScopingTests
     }
 
     [Fact]
-    public async Task GetAllAsync_ViewerWithNoTenant_ReturnsEmpty()
+    public async Task GetAllAsync_Viewer_NoTenants_ReturnsEmpty()
     {
         var (service, _) = BuildService(
-            currentUser: CurrentUserFactory.ViewerWithNoTenant());
+            currentUser: CurrentUserFactory.Viewer(),
+            resolver:    OwnershipResolverFactory.Empty());
 
         var result = await service.GetAllAsync();
 
         Assert.Empty(result);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // GetByIdAsync — ownership enforcement via GetTenantIdForInvoiceAsync
-    // ─────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public async Task GetAllAsync_Admin_ReturnsAllInvoices()
+    {
+        var all = MakeInvoiceList([1, 2, 3, 4, 5]);
+        var (service, _) = BuildService(
+            currentUser: CurrentUserFactory.Admin(),
+            resolver:    OwnershipResolverFactory.Bypass(),
+            getAllResult: all);
+
+        var result = await service.GetAllAsync();
+
+        Assert.Equal(5, result.Count());
+    }
+
+    [Fact]
+    public async Task GetAllAsync_Manager_ReturnsAllInvoices()
+    {
+        var all = MakeInvoiceList([1, 2, 3]);
+        var (service, _) = BuildService(
+            currentUser: CurrentUserFactory.Manager(),
+            resolver:    OwnershipResolverFactory.Bypass(),
+            getAllResult: all);
+
+        var result = await service.GetAllAsync();
+
+        Assert.Equal(3, result.Count());
+    }
+
+    // ── GetByIdAsync ──────────────────────────────────────────────────────────
 
     [Fact]
     public async Task GetByIdAsync_Viewer_OwnInvoice_ReturnsInvoice()
     {
-        var ownInvoice = MakeInvoice(id: 1);
+        var ownInvoice = MakeInvoice(1);
         var (service, _) = BuildService(
-            currentUser:          CurrentUserFactory.Viewer(tenantId: ViewerTenantId),
-            byIdResult:           ownInvoice,
-            tenantIdForInvoice:   ViewerTenantId);   // DB says this invoice belongs to Viewer's tenant
+            currentUser:       CurrentUserFactory.Viewer(),
+            resolver:          OwnershipResolverFactory.ForTenants(TenantA),
+            byIdResult:        ownInvoice,
+            tenantIdForInvoice: TenantA);
 
         var result = await service.GetByIdAsync(1);
 
@@ -85,26 +124,43 @@ public class InvoiceServiceScopingTests
     }
 
     [Fact]
-    public async Task GetByIdAsync_Viewer_OtherTenantInvoice_ThrowsKeyNotFoundException()
+    public async Task GetByIdAsync_Viewer_TwoTenants_CanAccessInvoiceFromEitherTenant()
     {
-        var otherInvoice = MakeInvoice(id: 5);
+        var tenantBInvoice = MakeInvoice(3);
         var (service, _) = BuildService(
-            currentUser:          CurrentUserFactory.Viewer(tenantId: ViewerTenantId),
-            byIdResult:           otherInvoice,
-            tenantIdForInvoice:   OtherTenantId);   // belongs to a DIFFERENT tenant
+            currentUser:       CurrentUserFactory.Viewer(),
+            resolver:          OwnershipResolverFactory.ForTenants(TenantA, TenantB),
+            byIdResult:        tenantBInvoice,
+            tenantIdForInvoice: TenantB);
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(
+        var result = await service.GetByIdAsync(3);
+
+        Assert.Equal(3, result.Id);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_Viewer_UnownedTenantInvoice_ThrowsForbidden()
+    {
+        var otherInvoice = MakeInvoice(5);
+        var (service, _) = BuildService(
+            currentUser:       CurrentUserFactory.Viewer(),
+            resolver:          OwnershipResolverFactory.ForTenants(TenantA, TenantB),
+            byIdResult:        otherInvoice,
+            tenantIdForInvoice: OtherTenant);
+
+        await Assert.ThrowsAsync<ForbiddenAccessException>(
             () => service.GetByIdAsync(5));
     }
 
     [Fact]
     public async Task GetByIdAsync_Admin_AnyInvoice_ReturnsInvoice()
     {
-        var anyInvoice = MakeInvoice(id: 5);
+        var anyInvoice = MakeInvoice(5);
         var (service, _) = BuildService(
-            currentUser:          CurrentUserFactory.Admin(),
-            byIdResult:           anyInvoice,
-            tenantIdForInvoice:   OtherTenantId);
+            currentUser:       CurrentUserFactory.Admin(),
+            resolver:          OwnershipResolverFactory.Bypass(),
+            byIdResult:        anyInvoice,
+            tenantIdForInvoice: OtherTenant);
 
         var result = await service.GetByIdAsync(5);
 
@@ -116,24 +172,24 @@ public class InvoiceServiceScopingTests
     {
         var (service, _) = BuildService(
             currentUser: CurrentUserFactory.Admin(),
+            resolver:    OwnershipResolverFactory.Bypass(),
             byIdResult:  null);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(
             () => service.GetByIdAsync(999));
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // GetByLeaseIdAsync — ownership checked via lease lookup
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── GetByLeaseIdAsync ─────────────────────────────────────────────────────
 
     [Fact]
     public async Task GetByLeaseIdAsync_Viewer_OwnLease_ReturnsInvoices()
     {
-        var ownLeaseInvoices = MakeInvoiceList(ids: [1, 2]);
+        var ownLeaseInvoices = MakeInvoiceList([1, 2]);
         var (service, _) = BuildService(
-            currentUser:     CurrentUserFactory.Viewer(tenantId: ViewerTenantId),
-            byLeaseResult:   ownLeaseInvoices,
-            leaseForId:      MakeLease(tenantId: ViewerTenantId));  // lease is owned by Viewer
+            currentUser:   CurrentUserFactory.Viewer(),
+            resolver:      OwnershipResolverFactory.ForTenants(TenantA),
+            byLeaseResult: ownLeaseInvoices,
+            leaseForId:    MakeLease(tenantId: TenantA));
 
         var result = await service.GetByLeaseIdAsync(leaseId: 1);
 
@@ -141,28 +197,123 @@ public class InvoiceServiceScopingTests
     }
 
     [Fact]
-    public async Task GetByLeaseIdAsync_Viewer_OtherTenantLease_ThrowsKeyNotFoundException()
+    public async Task GetByLeaseIdAsync_Viewer_UnownedLease_ThrowsForbidden()
     {
         var (service, _) = BuildService(
-            currentUser:  CurrentUserFactory.Viewer(tenantId: ViewerTenantId),
-            leaseForId:   MakeLease(tenantId: OtherTenantId));   // lease belongs to someone else
+            currentUser: CurrentUserFactory.Viewer(),
+            resolver:    OwnershipResolverFactory.ForTenants(TenantA),
+            leaseForId:  MakeLease(tenantId: OtherTenant));
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(
+        await Assert.ThrowsAsync<ForbiddenAccessException>(
             () => service.GetByLeaseIdAsync(leaseId: 9));
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Helpers
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── TenantName + UnitNumber population ───────────────────────────────────
+
+    [Fact]
+    public async Task GetByIdAsync_Admin_ReturnsInvoiceWithPopulatedTenantNameAndUnitNumber()
+    {
+        // The repository is responsible for populating these via .Include().
+        // This test verifies that InvoiceService passes the repo response through
+        // unchanged — the populated fields must not be lost or reset.
+        var invoiceWithDetails = new InvoiceDto
+        {
+            Id            = 42,
+            LeaseId       = 7,
+            InvoiceNumber = "INV-202601-0001",
+            AmountDue     = 8500m,
+            DueDate       = DateTime.UtcNow.AddDays(15),
+            IssueDate     = DateTime.UtcNow,
+            Status        = "Issued",
+            PeriodMonth   = 6,
+            PeriodYear    = 2026,
+            // These are the fields that were previously always blank:
+            TenantId      = 3,
+            TenantName    = "Haset Business Group",
+            UnitId        = 7,
+            UnitNumber    = "Unit 201",
+        };
+
+        var (service, _) = BuildService(
+            currentUser:        CurrentUserFactory.Admin(),
+            resolver:           OwnershipResolverFactory.Bypass(),
+            byIdResult:         invoiceWithDetails,
+            tenantIdForInvoice: 3);
+
+        var result = await service.GetByIdAsync(42);
+
+        Assert.Equal("Haset Business Group", result.TenantName);
+        Assert.Equal("Unit 201",             result.UnitNumber);
+        Assert.Equal(3,                      result.TenantId);
+        Assert.Equal(7,                      result.UnitId);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ReturnsEmptyStrings_WhenLeaseNavigationIsNull()
+    {
+        // Defensive test: if for any reason the repo returns an invoice where the
+        // navigation wasn't loaded, tenant/unit fields default to empty string
+        // (not null, which would cause NRE in the template).
+        var invoiceNoDetails = new InvoiceDto
+        {
+            Id            = 99,
+            LeaseId       = 1,
+            InvoiceNumber = "INV-202601-0099",
+            AmountDue     = 3000m,
+            DueDate       = DateTime.UtcNow.AddDays(10),
+            IssueDate     = DateTime.UtcNow,
+            Status        = "Draft",
+            PeriodMonth   = 1,
+            PeriodYear    = 2026,
+            TenantId      = 0,
+            TenantName    = string.Empty,
+            UnitId        = 0,
+            UnitNumber    = string.Empty,
+        };
+
+        var (service, _) = BuildService(
+            currentUser:        CurrentUserFactory.Admin(),
+            resolver:           OwnershipResolverFactory.Bypass(),
+            byIdResult:         invoiceNoDetails,
+            tenantIdForInvoice: null);
+
+        var result = await service.GetByIdAsync(99);
+
+        Assert.Equal(string.Empty, result.TenantName);
+        Assert.Equal(string.Empty, result.UnitNumber);
+        // These should never be null — template uses || '—' but let's be explicit
+        Assert.NotNull(result.TenantName);
+        Assert.NotNull(result.UnitNumber);
+    }
+
+    // ── Admin/Manager bypass: Bypass resolver = all records visible ──────────
+
+    [Fact]
+    public async Task GetAllAsync_Admin_Bypass_CallsGetAllRepoMethod()
+    {
+        var all = MakeInvoiceList([1, 2, 3]);
+        var (service, invoiceMock) = BuildService(
+            currentUser: CurrentUserFactory.Admin(),
+            resolver:    OwnershipResolverFactory.Bypass(),
+            getAllResult: all);
+
+        await service.GetAllAsync();
+
+        invoiceMock.Verify(r => r.GetAllAsync(), Times.Once);
+        invoiceMock.Verify(r => r.GetByTenantIdAsync(It.IsAny<int>()), Times.Never);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static (InvoiceService service, Mock<IInvoiceRepository> repoMock) BuildService(
-        ICurrentUserService        currentUser,
-        IEnumerable<InvoiceDto>?   getAllResult       = null,
-        IEnumerable<InvoiceDto>?   byTenantResult    = null,
-        IEnumerable<InvoiceDto>?   byLeaseResult     = null,
-        InvoiceDto?                byIdResult        = null,
-        int?                       tenantIdForInvoice = null,
-        LeaseDto?                  leaseForId        = null)
+        ICurrentUserService                      currentUser,
+        ITenantOwnershipResolver                 resolver,
+        IEnumerable<InvoiceDto>?                 getAllResult       = null,
+        Dictionary<int, IEnumerable<InvoiceDto>>? byTenantResults  = null,
+        IEnumerable<InvoiceDto>?                 byLeaseResult     = null,
+        InvoiceDto?                              byIdResult        = null,
+        int?                                     tenantIdForInvoice = null,
+        LeaseDto?                                leaseForId        = null)
     {
         var invoiceMock = new Mock<IInvoiceRepository>();
         var leaseMock   = new Mock<ILeaseRepository>();
@@ -171,7 +322,10 @@ public class InvoiceServiceScopingTests
             .ReturnsAsync(getAllResult ?? []);
 
         invoiceMock.Setup(r => r.GetByTenantIdAsync(It.IsAny<int>()))
-            .ReturnsAsync(byTenantResult ?? []);
+            .ReturnsAsync((int tid) =>
+                byTenantResults?.TryGetValue(tid, out var inv) == true
+                    ? inv
+                    : Enumerable.Empty<InvoiceDto>());
 
         invoiceMock.Setup(r => r.GetByLeaseIdAsync(It.IsAny<int>()))
             .ReturnsAsync(byLeaseResult ?? []);
@@ -182,11 +336,10 @@ public class InvoiceServiceScopingTests
         invoiceMock.Setup(r => r.GetTenantIdForInvoiceAsync(It.IsAny<int>()))
             .ReturnsAsync(tenantIdForInvoice);
 
-        // Lease repo — used by GetByLeaseIdAsync to resolve the owning tenant
         leaseMock.Setup(r => r.GetByIdAsync(It.IsAny<int>()))
             .ReturnsAsync(leaseForId);
 
-        var service = new InvoiceService(invoiceMock.Object, leaseMock.Object, currentUser);
+        var service = new InvoiceService(invoiceMock.Object, leaseMock.Object, currentUser, resolver);
         return (service, invoiceMock);
     }
 
@@ -201,6 +354,10 @@ public class InvoiceServiceScopingTests
         Status        = "Issued",
         PeriodMonth   = DateTime.UtcNow.Month,
         PeriodYear    = DateTime.UtcNow.Year,
+        TenantId      = 10,
+        TenantName    = "Sunrise Trading PLC",
+        UnitId        = 5,
+        UnitNumber    = "201",
     };
 
     private static IEnumerable<InvoiceDto> MakeInvoiceList(IEnumerable<int> ids) =>

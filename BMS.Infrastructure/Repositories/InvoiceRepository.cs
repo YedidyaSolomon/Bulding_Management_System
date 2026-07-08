@@ -13,15 +13,26 @@ public class InvoiceRepository : IInvoiceRepository
 
     public InvoiceRepository(ApplicationDbContext context) => _context = context;
 
+    // ── Base query — always includes Lease → Tenant and Lease → Unit ─────────
+    private IQueryable<Invoice> WithIncludes() =>
+        _context.Invoices
+            .Include(i => i.Lease)
+                .ThenInclude(l => l.Tenant)
+            .Include(i => i.Lease)
+                .ThenInclude(l => l.Unit);
+
+    // ─────────────────────────────────────────────────────────────────────────
+
     public async Task<InvoiceDto?> GetByIdAsync(int id)
     {
-        var inv = await _context.Invoices.FindAsync(id);
+        var inv = await WithIncludes()
+            .FirstOrDefaultAsync(i => i.Id == id);
         return inv is null ? null : MapToDto(inv);
     }
 
     public async Task<IEnumerable<InvoiceDto>> GetAllAsync()
     {
-        var invoices = await _context.Invoices
+        var invoices = await WithIncludes()
             .OrderByDescending(i => i.IssueDate)
             .ToListAsync();
         return invoices.Select(MapToDto);
@@ -29,7 +40,7 @@ public class InvoiceRepository : IInvoiceRepository
 
     public async Task<IEnumerable<InvoiceDto>> GetByLeaseIdAsync(int leaseId)
     {
-        var invoices = await _context.Invoices
+        var invoices = await WithIncludes()
             .Where(i => i.LeaseId == leaseId)
             .OrderByDescending(i => i.IssueDate)
             .ToListAsync();
@@ -38,11 +49,8 @@ public class InvoiceRepository : IInvoiceRepository
 
     public async Task<IEnumerable<InvoiceDto>> GetByUserIdAsync(string userId)
     {
-        // Invoice → Lease → Tenant (UserId)
-        var invoices = await _context.Invoices
-            .Include(i => i.Lease)
-                .ThenInclude(l => l.Tenant)
-            .Where(i => i.Lease.Tenant.UserId == userId)
+        var invoices = await WithIncludes()
+            .Where(i => i.Lease.Tenant.AppUserId == userId)
             .OrderByDescending(i => i.IssueDate)
             .ToListAsync();
         return invoices.Select(MapToDto);
@@ -50,8 +58,7 @@ public class InvoiceRepository : IInvoiceRepository
 
     public async Task<IEnumerable<InvoiceDto>> GetByTenantIdAsync(int tenantId)
     {
-        var invoices = await _context.Invoices
-            .Include(i => i.Lease)
+        var invoices = await WithIncludes()
             .Where(i => i.Lease.TenantId == tenantId)
             .OrderByDescending(i => i.IssueDate)
             .ToListAsync();
@@ -80,7 +87,7 @@ public class InvoiceRepository : IInvoiceRepository
         if (overdueList.Any())
             await _context.SaveChangesAsync();
 
-        var result = await _context.Invoices
+        var result = await WithIncludes()
             .Where(i => i.Status == InvoiceStatus.Overdue)
             .OrderBy(i => i.DueDate)
             .ToListAsync();
@@ -101,12 +108,14 @@ public class InvoiceRepository : IInvoiceRepository
             IssueDate     = DateTime.UtcNow,
             Status        = InvoiceStatus.Draft,
             PeriodMonth   = dto.PeriodMonth,
-            PeriodYear    = dto.PeriodYear
+            PeriodYear    = dto.PeriodYear,
         };
 
         _context.Invoices.Add(invoice);
         await _context.SaveChangesAsync();
-        return MapToDto(invoice);
+
+        // Reload with full includes so the returned DTO has tenant/unit info
+        return (await GetByIdAsync(invoice.Id))!;
     }
 
     public async Task UpdateStatusAsync(int id, string status)
@@ -139,6 +148,11 @@ public class InvoiceRepository : IInvoiceRepository
         IssueDate     = i.IssueDate,
         Status        = i.Status.ToString(),
         PeriodMonth   = i.PeriodMonth,
-        PeriodYear    = i.PeriodYear
+        PeriodYear    = i.PeriodYear,
+        // Navigation properties — populated when WithIncludes() was used
+        TenantId      = i.Lease?.TenantId   ?? 0,
+        TenantName    = i.Lease?.Tenant?.OrganizationName ?? string.Empty,
+        UnitId        = i.Lease?.UnitId     ?? 0,
+        UnitNumber    = i.Lease?.Unit?.UnitNumber         ?? string.Empty,
     };
 }

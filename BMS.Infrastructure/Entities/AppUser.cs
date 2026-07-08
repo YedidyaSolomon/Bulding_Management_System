@@ -11,24 +11,24 @@ namespace BMS.Infrastructure.Entities;
 ///   FullName  — displayed in the UI and included in the JWT claim
 ///   IsActive  — soft-disable a user without deleting them
 ///   Audit fields — required by the assignment for all entities
+///
+/// One AppUser can own many Tenants (one-to-many).
+/// The FK lives on Tenant.AppUserId, NOT here.
 /// </summary>
 public class AppUser : IdentityUser
 {
     public string FullName { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
 
-    // Audit fields (populated by DbContext SaveChanges override in future)
+    // Audit fields
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 
     /// <summary>
-    /// Links a Viewer login account to their tenant record.
-    /// Null for Admin and Manager accounts.
+    /// All tenant businesses this user owns.
+    /// A Viewer can own multiple tenants; Admin/Manager accounts will have none.
     /// </summary>
-    public int? TenantId { get; set; }
+    public ICollection<Tenant> Tenants { get; set; } = new List<Tenant>();
 
-    public Tenant? Tenant { get; set; }
-
-    public ICollection<Notification> Notifications { get; set; }
-       = new List<Notification>();
+    public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 }

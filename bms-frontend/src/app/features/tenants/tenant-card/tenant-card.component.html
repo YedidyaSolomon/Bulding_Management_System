@@ -32,6 +32,12 @@
       <mat-icon>receipt</mat-icon>
       <span class="tin-value">TIN: {{ tenant.tin }}</span>
     </div>
+    <!-- Owner account link status -->
+    <div class="info-row owner-row" [class.owner-linked]="tenant.appUserId" [class.owner-unlinked]="!tenant.appUserId">
+      <mat-icon>{{ tenant.appUserId ? 'link' : 'link_off' }}</mat-icon>
+      <span *ngIf="tenant.appUserId && tenant.userEmail">{{ tenant.userEmail }}</span>
+      <span *ngIf="!tenant.appUserId" class="unlinked-label">Not linked yet</span>
+    </div>
   </div>
 
   <!-- Card Actions -->

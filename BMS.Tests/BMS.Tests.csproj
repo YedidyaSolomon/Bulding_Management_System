@@ -26,6 +26,12 @@
     <!-- Only reference Application layer — services under test depend only on
          interfaces defined there, so Infrastructure/API are not needed. -->
     <ProjectReference Include="..\BMS.Application\BMS.Application.csproj" />
+    <!-- Infrastructure reference is needed for repository-level EF in-memory tests. -->
+    <ProjectReference Include="..\BMS.Infrastructure\BMS.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
   </ItemGroup>
 
 </Project>

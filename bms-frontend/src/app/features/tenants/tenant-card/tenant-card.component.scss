@@ -103,6 +103,36 @@
   letter-spacing: 0.04em;
 }
 
+// Owner link status row
+.owner-row {
+  margin-top: 2px;
+  border-top: 1px solid var(--bms-border, #e5e7eb);
+  padding-top: 6px;
+
+  mat-icon {
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+  }
+}
+
+.owner-linked {
+  color: #16a34a;
+  mat-icon { color: #16a34a; }
+  span { font-size: 12px; font-weight: 500; }
+}
+
+.owner-unlinked {
+  color: var(--bms-text-muted);
+  mat-icon { color: #f59e0b; }
+}
+
+.unlinked-label {
+  font-size: 12px;
+  font-style: italic;
+}
+
 // ── Actions ───────────────────────────────────────────────────────────────────
 .card-actions {
   display: flex;

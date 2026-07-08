@@ -19,16 +19,16 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.Property(u => u.CreatedAt)
                .IsRequired();
 
+        // One AppUser → many Tenants (FK on Tenant.AppUserId)
+        builder.HasMany(u => u.Tenants)
+               .WithOne(t => t.AppUser)
+               .HasForeignKey(t => t.AppUserId)
+               .OnDelete(DeleteBehavior.SetNull);
+
+        // One AppUser → many Notifications (FK on Notification.UserId)
         builder.HasMany(u => u.Notifications)
                .WithOne(n => n.User)
                .HasForeignKey(n => n.UserId)
                .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasOne(u => u.Tenant)
-               .WithMany()
-               .HasForeignKey(u => u.TenantId)
-               .OnDelete(DeleteBehavior.SetNull);
-
-        builder.HasIndex(u => u.TenantId);
     }
 }

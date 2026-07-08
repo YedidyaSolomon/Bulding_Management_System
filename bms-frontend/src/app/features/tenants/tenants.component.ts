@@ -208,6 +208,9 @@ export class TenantsComponent implements OnInit, OnDestroy {
   openDetail(tenant: TenantDto): void {
     this.dialog.open(TenantDetailDialogComponent, {
       width: '600px', maxWidth: '95vw', data: { tenant },
+    }).afterClosed().subscribe(() => {
+      // Reload in case a link-user action happened inside the detail dialog
+      this.loadTenants();
     });
   }
 

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BMS.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260706030321_AddTenantIdToAppUser")]
-    partial class AddTenantIdToAppUser
+    [Migration("20260707120750_AddTenantAppUserId_OneToMany")]
+    partial class AddTenantAppUserId_OneToMany
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -83,9 +83,6 @@ namespace BMS.Infrastructure.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("TenantId")
-                        .HasColumnType("int");
-
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
 
@@ -105,8 +102,6 @@ namespace BMS.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
-
-                    b.HasIndex("TenantId");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -397,6 +392,10 @@ namespace BMS.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AppUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("BusinessType")
                         .HasColumnType("int");
 
@@ -434,14 +433,9 @@ namespace BMS.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("AppUserId");
 
                     b.ToTable("Tenants");
                 });
@@ -627,16 +621,6 @@ namespace BMS.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("BMS.Infrastructure.Entities.AppUser", b =>
-                {
-                    b.HasOne("BMS.Infrastructure.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Tenant");
-                });
-
             modelBuilder.Entity("BMS.Infrastructure.Entities.Floor", b =>
                 {
                     b.HasOne("BMS.Infrastructure.Entities.Building", "Building")
@@ -713,13 +697,12 @@ namespace BMS.Infrastructure.Migrations
 
             modelBuilder.Entity("BMS.Infrastructure.Entities.Tenant", b =>
                 {
-                    b.HasOne("BMS.Infrastructure.Entities.AppUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                    b.HasOne("BMS.Infrastructure.Entities.AppUser", "AppUser")
+                        .WithMany("Tenants")
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
-                    b.Navigation("User");
+                    b.Navigation("AppUser");
                 });
 
             modelBuilder.Entity("BMS.Infrastructure.Entities.Unit", b =>
@@ -786,6 +769,8 @@ namespace BMS.Infrastructure.Migrations
             modelBuilder.Entity("BMS.Infrastructure.Entities.AppUser", b =>
                 {
                     b.Navigation("Notifications");
+
+                    b.Navigation("Tenants");
                 });
 
             modelBuilder.Entity("BMS.Infrastructure.Entities.Building", b =>

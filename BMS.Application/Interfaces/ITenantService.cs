@@ -14,6 +14,8 @@ public interface ITenantService
     Task<TenantDto>              CreateAsync(CreateTenantDto dto);
     Task<TenantDto>              UpdateAsync(int id, UpdateTenantDto dto);
     Task                         DeleteAsync(int id);
+    /// <summary>Links an existing tenant to a registered Viewer account (Admin/Manager only).</summary>
+    Task<TenantDto>              LinkUserAsync(int tenantId, string appUserId, bool force = false);
     Task<LegalDocumentDto>       AddDocumentAsync(CreateLegalDocumentDto dto);
     Task<IEnumerable<LegalDocumentDto>> GetDocumentsAsync(int tenantId);
 }

@@ -1,4 +1,5 @@
 using BMS.Application.Common;
+using BMS.Application.Exceptions;
 using BMS.Tests.Helpers;
 using Xunit;
 
@@ -6,56 +7,48 @@ namespace BMS.Tests.Common;
 
 /// <summary>
 /// Unit tests for the DataScope static utility.
-/// These tests have no dependencies — no mocks, no infrastructure.
+/// No mocks, no infrastructure — pure logic only.
+///
+/// EnsureViewerOwnedTenantAccess semantics:
+///   ownedIds == null  → bypass (Admin/Manager) — never throws
+///   ownedIds contains resourceTenantId → allowed — never throws
+///   ownedIds does NOT contain resourceTenantId → throws ForbiddenAccessException
 /// </summary>
 public class DataScopeTests
 {
-    // ── EnsureViewerTenantAccess ──────────────────────────────────────────────
+    // ── EnsureViewerOwnedTenantAccess ─────────────────────────────────────────
 
     [Fact]
-    public void EnsureViewerTenantAccess_Viewer_MatchingTenant_DoesNotThrow()
+    public void EnsureViewerOwnedTenantAccess_NullList_Bypass_DoesNotThrow()
     {
-        var user = CurrentUserFactory.Viewer(tenantId: 5);
-
-        // Should complete without throwing
-        DataScope.EnsureViewerTenantAccess(user, resourceTenantId: 5);
+        // null = Admin/Manager signal — must never throw
+        DataScope.EnsureViewerOwnedTenantAccess(null, resourceTenantId: 99);
     }
 
     [Fact]
-    public void EnsureViewerTenantAccess_Viewer_DifferentTenant_ThrowsKeyNotFoundException()
+    public void EnsureViewerOwnedTenantAccess_ListContainsTenant_DoesNotThrow()
     {
-        var user = CurrentUserFactory.Viewer(tenantId: 5);
+        var ownedIds = new List<int> { 5, 10, 15 };
 
-        var ex = Assert.Throws<KeyNotFoundException>(
-            () => DataScope.EnsureViewerTenantAccess(user, resourceTenantId: 99));
-
-        Assert.Contains("not found", ex.Message, StringComparison.OrdinalIgnoreCase);
+        DataScope.EnsureViewerOwnedTenantAccess(ownedIds, resourceTenantId: 10);
     }
 
     [Fact]
-    public void EnsureViewerTenantAccess_Admin_AnyTenant_DoesNotThrow()
+    public void EnsureViewerOwnedTenantAccess_ListDoesNotContainTenant_ThrowsForbidden()
     {
-        var user = CurrentUserFactory.Admin();
+        var ownedIds = new List<int> { 5, 10 };
 
-        // Admin is never blocked — must pass for any tenant ID
-        DataScope.EnsureViewerTenantAccess(user, resourceTenantId: 99);
+        Assert.Throws<ForbiddenAccessException>(
+            () => DataScope.EnsureViewerOwnedTenantAccess(ownedIds, resourceTenantId: 99));
     }
 
     [Fact]
-    public void EnsureViewerTenantAccess_Manager_AnyTenant_DoesNotThrow()
+    public void EnsureViewerOwnedTenantAccess_EmptyList_ThrowsForbidden()
     {
-        var user = CurrentUserFactory.Manager();
+        var ownedIds = new List<int>();
 
-        DataScope.EnsureViewerTenantAccess(user, resourceTenantId: 99);
-    }
-
-    [Fact]
-    public void EnsureViewerTenantAccess_ViewerWithNoTenant_ThrowsKeyNotFoundException()
-    {
-        var user = CurrentUserFactory.ViewerWithNoTenant();
-
-        Assert.Throws<KeyNotFoundException>(
-            () => DataScope.EnsureViewerTenantAccess(user, resourceTenantId: 5));
+        Assert.Throws<ForbiddenAccessException>(
+            () => DataScope.EnsureViewerOwnedTenantAccess(ownedIds, resourceTenantId: 5));
     }
 
     // ── EnsureViewerUserAccess ────────────────────────────────────────────────
@@ -83,7 +76,6 @@ public class DataScopeTests
     {
         var user = CurrentUserFactory.Admin();
 
-        // Admin is never blocked
         DataScope.EnsureViewerUserAccess(user, resourceUserId: "some-other-user");
     }
 
@@ -93,12 +85,11 @@ public class DataScopeTests
     public void ResolveUserId_Viewer_AlwaysReturnsOwnUserId()
     {
         const string viewerId    = "viewer-7";
-        const string requestedId = "admin-99";   // frontend tried to request a different user
+        const string requestedId = "admin-99";
         var user = CurrentUserFactory.Viewer(userId: viewerId);
 
         var resolved = DataScope.ResolveUserId(user, requestedId);
 
-        // Viewer must always be redirected to their own ID
         Assert.Equal(viewerId, resolved);
         Assert.NotEqual(requestedId, resolved);
     }
@@ -111,7 +102,6 @@ public class DataScopeTests
 
         var resolved = DataScope.ResolveUserId(user, requestedId);
 
-        // Admin can query any user
         Assert.Equal(requestedId, resolved);
     }
 
@@ -129,11 +119,6 @@ public class DataScopeTests
     [Fact]
     public void ResolveUserId_Viewer_NullOwnUserId_ThrowsUnauthorizedException()
     {
-        // Edge case: token has no sub claim — should never happen in production
-        // but the utility must handle it gracefully.
-        var user = CurrentUserFactory.ViewerWithNoTenant();
-        // ViewerWithNoTenant sets UserId = "viewer-orphan" so it's not null.
-        // Test the null-UserId path by calling with a truly empty-userId mock:
         var mock = new Moq.Mock<BMS.Application.Interfaces.ICurrentUserService>();
         mock.Setup(s => s.UserId).Returns((string?)null);
         mock.Setup(s => s.IsViewer).Returns(true);

@@ -3,16 +3,16 @@
     <mat-icon>business</mat-icon>
   </div>
   <div class="header-text">
-    <h2 mat-dialog-title>{{ data.tenant.organizationName }}</h2>
-    <span class="badge" [ngClass]="statusClass(data.tenant.isActive)">
-      {{ statusLabel(data.tenant.isActive) }}
+    <h2 mat-dialog-title>{{ tenant.organizationName }}</h2>
+    <span class="badge" [ngClass]="statusClass(tenant.isActive)">
+      {{ statusLabel(tenant.isActive) }}
     </span>
   </div>
 </div>
 
 <mat-dialog-content>
 
-  <!-- ── Organization Info ─────────────────────────────────────────────── -->
+  <!-- ── Organization Info ──────────────────────────────────────────────── -->
   <div class="detail-section">
     <div class="section-title">
       <mat-icon>info_outline</mat-icon>
@@ -21,26 +21,26 @@
     <div class="detail-grid">
       <div class="detail-item">
         <span class="detail-label">Organization</span>
-        <span class="detail-value">{{ data.tenant.organizationName }}</span>
+        <span class="detail-value">{{ tenant.organizationName }}</span>
       </div>
       <div class="detail-item">
         <span class="detail-label">Business Type</span>
-        <span class="detail-value">{{ data.tenant.businessType }}</span>
+        <span class="detail-value">{{ tenant.businessType }}</span>
       </div>
       <div class="detail-item">
         <span class="detail-label">TIN</span>
-        <span class="detail-value mono">{{ data.tenant.tin }}</span>
+        <span class="detail-value mono">{{ tenant.tin }}</span>
       </div>
       <div class="detail-item">
         <span class="detail-label">Phone</span>
-        <span class="detail-value">{{ data.tenant.phone }}</span>
+        <span class="detail-value">{{ tenant.phone }}</span>
       </div>
     </div>
   </div>
 
   <mat-divider />
 
-  <!-- ── Contact Person ───────────────────────────────────────────────── -->
+  <!-- ── Contact Person ────────────────────────────────────────────────── -->
   <div class="detail-section">
     <div class="section-title">
       <mat-icon>person</mat-icon>
@@ -49,18 +49,67 @@
     <div class="detail-grid">
       <div class="detail-item">
         <span class="detail-label">Name</span>
-        <span class="detail-value">{{ data.tenant.contactPersonName }}</span>
+        <span class="detail-value">{{ tenant.contactPersonName }}</span>
       </div>
       <div class="detail-item">
         <span class="detail-label">Email</span>
-        <span class="detail-value">{{ data.tenant.contactEmail }}</span>
+        <span class="detail-value">{{ tenant.contactEmail }}</span>
       </div>
     </div>
   </div>
 
   <mat-divider />
 
-  <!-- ── Legal Documents ──────────────────────────────────────────────── -->
+  <!-- ── Owner Account ──────────────────────────────────────────────────── -->
+  <div class="detail-section">
+    <div class="section-title-row">
+      <div class="section-title">
+        <mat-icon>manage_accounts</mat-icon>
+        Owner Account
+      </div>
+      <!-- Link / Re-link button — Admin/Manager only -->
+      <button
+        *ngIf="canManage"
+        mat-stroked-button
+        class="link-btn"
+        (click)="openLinkUser()"
+        [matTooltip]="tenant.appUserId ? 'Re-link to a different user' : 'Link to a registered user'">
+        <mat-icon>{{ tenant.appUserId ? 'sync_alt' : 'link' }}</mat-icon>
+        {{ tenant.appUserId ? 'Re-link' : 'Link User' }}
+      </button>
+    </div>
+
+    <!-- Linked state -->
+    <div class="owner-status linked" *ngIf="tenant.appUserId">
+      <div class="owner-status-icon">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="owner-status-body">
+        <span class="owner-status-label">Linked account</span>
+        <span class="owner-status-value">{{ tenant.userEmail ?? tenant.appUserId }}</span>
+      </div>
+    </div>
+
+    <!-- Unlinked state -->
+    <div class="owner-status unlinked" *ngIf="!tenant.appUserId">
+      <div class="owner-status-icon">
+        <mat-icon>link_off</mat-icon>
+      </div>
+      <div class="owner-status-body">
+        <span class="owner-status-label">Not linked yet</span>
+        <span class="owner-status-hint" *ngIf="canManage">
+          Use "Link User" to associate a registered Viewer account as the tenant owner.
+        </span>
+        <span class="owner-status-hint" *ngIf="!canManage">
+          No registered account has been linked to this tenant.
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <mat-divider />
+
+  <!-- ── Legal Documents ───────────────────────────────────────────────── -->
   <div class="detail-section">
     <div class="section-title-row">
       <div class="section-title">
@@ -92,7 +141,6 @@
             <mat-error *ngIf="docForm.get('filePath')!.hasError('required')">Required.</mat-error>
           </mat-form-field>
 
-          <!-- Expiry Date — calendar picker, min = today, field is optional -->
           <app-date-picker
             formControlName="expiryDate"
             label="Expiry Date (optional)"
@@ -134,7 +182,8 @@
             </ng-container>
           </span>
         </div>
-        <span class="badge" [ngClass]="doc.isVerified ? 'badge-success' : 'badge-neutral'"
+        <span class="badge"
+              [ngClass]="doc.isVerified ? 'badge-success' : 'badge-neutral'"
               [matTooltip]="doc.isVerified ? 'Verified' : 'Pending verification'">
           {{ doc.isVerified ? 'Verified' : 'Pending' }}
         </span>

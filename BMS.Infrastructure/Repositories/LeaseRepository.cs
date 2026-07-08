@@ -83,10 +83,14 @@ public class LeaseRepository : ILeaseRepository
 
         _context.Leases.Add(lease);
 
-        // Auto-set unit status to Occupied
+        // Auto-set unit status to Occupied and clear any reservation link
         var unit = await _context.Units.FindAsync(dto.UnitId);
         if (unit is not null)
-            unit.Status = UnitStatus.Occupied;
+        {
+            unit.Status              = UnitStatus.Occupied;
+            unit.ReservedForTenantId = null;   // reservation fulfilled — clear it
+            unit.UpdatedAt           = DateTime.UtcNow;
+        }
 
         await _context.SaveChangesAsync();
 
@@ -117,9 +121,13 @@ public class LeaseRepository : ILeaseRepository
         lease.Status            = LeaseStatus.Terminated;
         lease.TerminationReason = reason;
 
-        // Auto-set unit back to Available
+        // Auto-set unit back to Available and clear any residual reservation
         if (lease.Unit is not null)
-            lease.Unit.Status = UnitStatus.Available;
+        {
+            lease.Unit.Status              = UnitStatus.Available;
+            lease.Unit.ReservedForTenantId = null;
+            lease.Unit.UpdatedAt           = DateTime.UtcNow;
+        }
 
         await _context.SaveChangesAsync();
     }
@@ -145,7 +153,7 @@ public class LeaseRepository : ILeaseRepository
                 Id         = l.Id,
                 TenantName = l.Tenant.OrganizationName,
                 UnitNumber = l.Unit.UnitNumber,
-                UserId     = l.Tenant.UserId,
+                UserId     = l.Tenant.AppUserId,
                 EndDate    = l.EndDate,
             })
             .ToListAsync();

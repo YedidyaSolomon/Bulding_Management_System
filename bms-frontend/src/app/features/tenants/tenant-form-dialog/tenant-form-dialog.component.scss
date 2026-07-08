@@ -76,10 +76,152 @@ mat-dialog-content {
   overflow-y: auto;
 }
 
+// ── User picker ───────────────────────────────────────────────────────────────
+.user-picker-section {
+  padding-bottom: 4px;
+}
+
+// Autocomplete option layout
+.user-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 0;
+
+  .user-option-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: var(--bms-text-muted);
+    flex-shrink: 0;
+  }
+
+  .user-option-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    overflow: hidden;
+  }
+
+  .user-option-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--bms-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-option-email {
+    font-size: 11px;
+    color: var(--bms-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.no-results {
+  font-size: 13px;
+  color: var(--bms-text-muted);
+  font-style: italic;
+}
+
+// Linked-user confirmation hint
+.hint-linked {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #16a34a !important;
+  font-size: 12px;
+  font-weight: 500;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+}
+
 mat-dialog-actions {
   padding: 8px 24px 20px;
   gap: 8px;
 
   button mat-spinner { display: inline-flex; margin-right: 6px; }
   button mat-icon    { margin-right: 6px; font-size: 18px; width: 18px; height: 18px; }
+}
+
+// ── Unit reservation section ──────────────────────────────────────────────────
+.reservation-section {
+  margin-top: 8px;
+  padding: 14px 16px 6px;
+  border: 1px dashed var(--bms-border, #e2e8f0);
+  border-radius: 10px;
+  background: var(--bms-surface-alt, #f8fafc);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reservation-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.reservation-icon {
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+  color: var(--bms-primary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.reservation-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bms-text-primary);
+  display: block;
+}
+
+.optional-label {
+  font-weight: 400;
+  font-size: 11px;
+  color: var(--bms-text-muted);
+  margin-left: 4px;
+  text-transform: lowercase;
+}
+
+.reservation-subtitle {
+  font-size: 12px;
+  color: var(--bms-text-muted);
+  display: block;
+  margin-top: 2px;
+  line-height: 1.5;
+}
+
+.unit-rent {
+  font-size: 12px;
+  color: var(--bms-text-muted);
+}
+
+.unit-loading-spinner {
+  margin-right: 4px;
+}
+
+// Confirmation hint shown when a unit is selected
+.hint-reserved {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #16a34a !important;
+  font-size: 12px;
+  font-weight: 500;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
 }

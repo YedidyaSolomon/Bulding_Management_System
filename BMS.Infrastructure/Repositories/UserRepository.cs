@@ -9,6 +9,7 @@ namespace BMS.Infrastructure.Repositories;
 /// <summary>
 /// Wraps ASP.NET Core Identity UserManager/SignInManager so the Application
 /// layer never depends on Identity directly.
+/// AppUser no longer has a TenantId — tenant ownership lives on Tenant.AppUserId.
 /// </summary>
 public class UserRepository : IUserRepository
 {
@@ -88,24 +89,6 @@ public class UserRepository : IUserRepository
         if (user is null) return null;
         var roles = await _userManager.GetRolesAsync(user);
         return roles.FirstOrDefault();
-    }
-
-    public async Task<int?> GetTenantIdAsync(string userId)
-    {
-        var user = await _userManager.FindByIdAsync(userId);
-        return user?.TenantId;
-    }
-
-    public async Task SetTenantIdAsync(string userId, int tenantId)
-    {
-        var user = await _userManager.FindByIdAsync(userId)
-                   ?? throw new KeyNotFoundException($"User {userId} not found.");
-
-        user.TenantId = tenantId;
-        var result = await _userManager.UpdateAsync(user);
-        if (!result.Succeeded)
-            throw new InvalidOperationException(
-                string.Join("; ", result.Errors.Select(e => e.Description)));
     }
 
     public async Task<bool> CheckPasswordAsync(string userId, string password)
