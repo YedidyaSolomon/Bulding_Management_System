@@ -22,7 +22,10 @@ import {
   dateToIso,
 } from '../../../shared/components/date-picker/date-picker.component';
 
-export interface PaymentRecordDialogData { invoice: InvoiceDto; }
+export interface PaymentRecordDialogData {
+  invoice:  InvoiceDto;
+  invoices: InvoiceDto[];   // full list so user can switch invoice inside the dialog
+}
 
 // ── Validator ─────────────────────────────────────────────────────────────────
 
@@ -83,18 +86,34 @@ export class PaymentRecordDialogComponent implements OnInit {
     today.setHours(0, 0, 0, 0);
 
     this.form = this.fb.group({
+      invoiceId:       [this.data.invoice.id,       Validators.required],
       amountPaid:      [this.data.invoice.amountDue, [Validators.required, Validators.min(0.01)]],
       paymentDate:     [today,  [Validators.required, notFutureValidator]],
       paymentMethod:   ['Cash', Validators.required],
       referenceNumber: [''],
       notes:           [''],
     });
+
+    // When the user picks a different invoice, pre-fill amountPaid with its amountDue
+    this.form.get('invoiceId')!.valueChanges.subscribe((id: number) => {
+      const selected = this.data.invoices.find(i => i.id === id);
+      if (selected) {
+        this.form.get('amountPaid')!.setValue(selected.amountDue, { emitEvent: false });
+      }
+    });
   }
 
-  get amountPaid()      { return this.form.get('amountPaid')!;     }
-  get paymentDate()     { return this.form.get('paymentDate')!;    }
-  get paymentMethod()   { return this.form.get('paymentMethod')!;  }
-  get referenceNumber() { return this.form.get('referenceNumber')!; }
+  get invoiceId()       { return this.form.get('invoiceId')!;       }
+  get amountPaid()      { return this.form.get('amountPaid')!;       }
+  get paymentDate()     { return this.form.get('paymentDate')!;      }
+  get paymentMethod()   { return this.form.get('paymentMethod')!;    }
+  get referenceNumber() { return this.form.get('referenceNumber')!;  }
+
+  /** Currently selected invoice (for the hint text) */
+  get selectedInvoice(): InvoiceDto | undefined {
+    const id = this.form.get('invoiceId')!.value;
+    return this.data.invoices.find(i => i.id === id);
+  }
 
   methodLabel(m: string): string { return this.paymentMethodLabels[m] ?? m; }
 
@@ -106,7 +125,7 @@ export class PaymentRecordDialogComponent implements OnInit {
     const v = this.form.value;
 
     const dto = {
-      invoiceId:       this.data.invoice.id,
+      invoiceId:       Number(v.invoiceId),
       amountPaid:      Number(v.amountPaid),
       paymentDate:     dateToIso(v.paymentDate),   // Date → ISO string
       paymentMethod:   v.paymentMethod,

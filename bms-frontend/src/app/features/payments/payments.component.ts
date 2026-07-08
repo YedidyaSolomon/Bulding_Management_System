@@ -11,7 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
@@ -98,6 +98,7 @@ export class PaymentsComponent implements OnInit, OnDestroy {
     private invoiceService: InvoiceService,
     private authService:    AuthService,
     private dialog:         MatDialog,
+    private snackBar:       MatSnackBar,
     private ngZone:         NgZone,
   ) {}
 
@@ -256,10 +257,18 @@ export class PaymentsComponent implements OnInit, OnDestroy {
         const payable = invoices.filter(
           i => i.status === 'Issued' || i.status === 'Overdue'
         );
-        if (payable.length === 0) return;
+
+        if (payable.length === 0) {
+          this.snackBar.open(
+            'No invoices are currently due for payment.',
+            'OK',
+            { duration: 4000 },
+          );
+          return;
+        }
 
         this.dialog.open(PaymentRecordDialogComponent, {
-          width: '520px', maxWidth: '95vw',
+          width: '560px', maxWidth: '95vw',
           data: { invoice: payable[0], invoices: payable },
         }).afterClosed().subscribe(result => {
           if (result) this.loadPayments();
